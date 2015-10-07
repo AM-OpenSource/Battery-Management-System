@@ -391,7 +391,7 @@
       <string>Battery capacity in Ampere Hours</string>
      </property>
      <property name="minimum">
-      <number>40</number>
+      <number>0</number>
      </property>
      <property name="maximum">
       <number>200</number>
@@ -432,7 +432,7 @@
       <string>Battery capacity in Ampere Hours</string>
      </property>
      <property name="minimum">
-      <number>40</number>
+      <number>0</number>
      </property>
      <property name="maximum">
       <number>200</number>
@@ -473,7 +473,7 @@
       <string>Battery capacity in Ampere Hours</string>
      </property>
      <property name="minimum">
-      <number>40</number>
+      <number>0</number>
      </property>
      <property name="maximum">
       <number>200</number>
