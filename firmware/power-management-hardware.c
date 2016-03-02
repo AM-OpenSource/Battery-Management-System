@@ -483,8 +483,8 @@ static void gpioSetup(void)
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG,
                 PA_ANALOGUE_INPUTS);
 #endif
-/* PA inputs analogue for currents, voltages and ambient temperature */
-#ifdef PA_ANALOGUE_INPUTS
+/* PC inputs analogue for currents, voltages and ambient temperature */
+#ifdef PC_ANALOGUE_INPUTS
     gpio_set_mode(GPIOC, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG,
                 PC_ANALOGUE_INPUTS);
 #endif
