@@ -54,6 +54,7 @@ socat /dev/ttyUSB0,echo=0,ispeed=115200,ospeed=115200,raw tcp-l:6666,reuseaddr,f
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QDebug>
 #include <cstdlib>
 #include <iostream>
