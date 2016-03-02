@@ -649,33 +649,47 @@ void DataProcessingGui::on_voltagePlotCheckBox_clicked()
 void DataProcessingGui::on_plotFileSelectButton_clicked()
 {
     bool showCurrent = ! DataProcessingMainUi.voltagePlotCheckBox->isChecked();
+    bool showTemperature = DataProcessingMainUi.temperaturePlotCheckbox->isChecked();
     float xScaleLow,xScaleHigh,yScaleLow,yScaleHigh;
     bool showPlot1,showPlot2,showPlot3,showPlot4;
     int i1,i2,i3,i4;        // Column for data series
-    if (showCurrent)        // Current
+    if (showTemperature)
     {
-        showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
-        showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
-        showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
-        showPlot4 = DataProcessingMainUi.moduleCheckbox->isChecked();
-        i1 = 1;
-        i2 = 7;
-        i3 = 13;
-        i4 = 23;
-        yScaleLow = -20;
-        yScaleHigh = 20;
-    }
-    else                    // Voltage
-    {
-        showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
-        showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
-        showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
+        showPlot1 = true;
+        showPlot2 = false;
+        showPlot3 = false;
         showPlot4 = false;
-        i1 = 2;
-        i2 = 8;
-        i3 = 14;
-        yScaleLow = 10;
-        yScaleHigh = 18;
+        i1 = 25;
+        yScaleLow = -10;
+        yScaleHigh = 50;
+    }
+    else
+    {
+        if (showCurrent)        // Current
+        {
+            showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
+            showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
+            showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
+            showPlot4 = DataProcessingMainUi.moduleCheckbox->isChecked();
+            i1 = 1;
+            i2 = 7;
+            i3 = 13;
+            i4 = 23;
+            yScaleLow = -20;
+            yScaleHigh = 20;
+        }
+        else                    // Voltage
+        {
+            showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
+            showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
+            showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
+            showPlot4 = false;
+            i1 = 2;
+            i2 = 8;
+            i3 = 14;
+            yScaleLow = 10;
+            yScaleHigh = 18;
+        }
     }
 
 // Get data file
@@ -692,7 +706,8 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
     if (showPlot1)
     {
         curve1 = new QwtPlotCurve();
-        curve1->setTitle("Battery 1");
+        if (showTemperature) curve1->setTitle("Temperature");
+        else curve1->setTitle("Battery 1");
         curve1->setPen(Qt::blue, 2),
         curve1->setRenderHint(QwtPlotItem::RenderAntialiased, true);
     }
@@ -784,8 +799,12 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
     }
 // Build plot
     QwtPlot *plot = new QwtPlot(0);
-    if (showCurrent) plot->setTitle("BMS Currents");
-    else plot->setTitle("BMS Voltages");
+    if (showTemperature) plot->setTitle("Battery Temperature");
+    else
+    {
+        if (showCurrent) plot->setTitle("Battery Currents");
+        else plot->setTitle("Battery Voltages");
+    }
     plot->setCanvasBackground(Qt::white);
     plot->setAxisScale(QwtPlot::yLeft, yScaleLow, yScaleHigh);
     //Set x-axis scaling.
