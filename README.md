@@ -58,9 +58,7 @@ directly to the MOSFET switches for rapid disconnect.
 A data processing program is also provided to generate reports of various types
 from the recorded performance data.
 
-More information is available on:
-
-http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-overview.html
+More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-overview.html).
 
 (c) K. Sarkies 12/09/2015
 
@@ -68,4 +66,8 @@ TODO
 
 1. Improvement of MOSFET switch drivers to reduce EMI at higher rates.
 2. MPPT regulator for the panel.
+3. Some minor system issues:
+* File date error
+* Communications hang when errored messages sent.
+
 

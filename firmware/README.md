@@ -1,6 +1,7 @@
 Battery Management System Firmware
-Version: 1.00
 ----------------------------------
+
+Version: 1.00
 
 The firmware is written for an STM32F103 ARM Cortex M3 microcontroller and uses
 specific hardware published here.
@@ -39,9 +40,7 @@ reported in the literature, providing efficient and independent charging of
 multiple batteries from an uncontrolled variable power source such as that found
 in solar and aeolian systems.
 
-More information is available on:
-
-http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-software.html
+More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-software.html)
 
 (c) K. Sarkies 12/09/2015
 

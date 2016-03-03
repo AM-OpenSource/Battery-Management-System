@@ -14,9 +14,7 @@ incorporate it directly into the compile and link procedure.
 The file power-management.pro must be modified to point to the directory
 holding qextserialport.
 
-More information is available on:
-
-http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-gui.html
+More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-gui.html).
 
 (c) K. Sarkies 29/09/2014
 

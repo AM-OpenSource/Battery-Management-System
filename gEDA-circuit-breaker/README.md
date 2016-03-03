@@ -13,8 +13,7 @@ The circuit breaker passes a signal back to the interconnect board where it
 is used for hardware isolation of the particular switch. For this reason the
 correct power source and circuit interfaces must be used together, otherwise
 the circuit breaker will be ineffective. Similarly for the low voltage
-detection. The circuit breaker is based on those proposed by R Paisley
-http://home.cogeco.ca/~rpaisley4/CircuitBreaker05.html
+detection. The circuit breaker is based on those proposed by [R Paisley](http://home.cogeco.ca/~rpaisley4/CircuitBreaker05.html).
 
 (c) K. Sarkies 31/08/2014
 

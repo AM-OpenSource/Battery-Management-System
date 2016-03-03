@@ -21,16 +21,17 @@ holding qextserialport.
 Call with power-management [options]
 
 -P   port (/dev/ttyUSB0 default)
+
 -b   baudrate (from 2400, 4800, 9600, 19200, 38400 default, 57600, 115200)
+
 -a   TCP address (192.168.2.14 default)
+
 -p   TCP port (6666 default)
 
 The first two are used only when compiled for serial comms, and the latter when
 compiled for TCP/IP.
 
-More information is available on:
-
-http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-gui.html
+More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-gui.html).
 
 (c) K. Sarkies 01/09/2014
 
