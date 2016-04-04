@@ -110,7 +110,7 @@ private:
     Ui::PowerManagementMainDialog PowerManagementMainUi;
 // Common code
     void initMainWindow(Ui::PowerManagementMainDialog);
-    void setSourceComboBox();
+    void setSourceComboBox(int index);
 // Methods
     void processResponse(const QString response);
     void getCurrentVoltage(const QStringList breakdown,QString* sVoltage, QString* sCurrent);

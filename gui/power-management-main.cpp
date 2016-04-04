@@ -80,6 +80,7 @@ PowerManagementGui::PowerManagementGui(QString device, uint parameter,
 #ifdef SERIAL
     baudrate = parameter;
     serialDevice = device;
+    setSourceComboBox(0);
 /* Create serial port if it has been specified, otherwise leave to the GUI. */
     on_connectButton_clicked();
 #else
@@ -209,7 +210,7 @@ This queries the serial devices in /dev and fills in the source combo box
 with likely candidates. The default is /dev/ttyUSB0.
 */
 
-void PowerManagementGui::setSourceComboBox()
+void PowerManagementGui::setSourceComboBox(int index)
 {
     QString serialDevice;
     PowerManagementMainUi.sourceComboBox->clear();
@@ -228,7 +229,7 @@ void PowerManagementGui::setSourceComboBox()
         if (checkUSBFile.exists())
             PowerManagementMainUi.sourceComboBox->insertItem(0,serialDevice);
     }
-    PowerManagementMainUi.sourceComboBox->setCurrentIndex(0);
+    PowerManagementMainUi.sourceComboBox->setCurrentIndex(index);
 
     QStringList baudrates;
     baudrates << "2400" << "4800" << "9600" << "19200" << "38400" << "57600" << "115200";
@@ -1892,14 +1893,14 @@ bool PowerManagementGui::validsocket()
 /** @brief Attempt to connect to the remote system.
 
 For serial, if opening the port is successful, connect to the slot, otherwise
-delete the socket.
+delete the socket. Read the device name from the GUI.
 */
 void PowerManagementGui::on_connectButton_clicked()
 {
 #ifdef SERIAL
-    setSourceComboBox();
     if (socket == NULL)
     {
+        serialDevice = PowerManagementMainUi.sourceComboBox->currentText();
         socket = new SerialPort(serialDevice);
         if (socket->initPort(baudrate,100))
         {
@@ -1924,6 +1925,7 @@ void PowerManagementGui::on_connectButton_clicked()
         socket = NULL;
         PowerManagementMainUi.connectButton->setText("Connect");
     }
+    setSourceComboBox(PowerManagementMainUi.sourceComboBox->currentIndex());
 #else
     if (socket == NULL)
     {
