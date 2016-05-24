@@ -40,9 +40,18 @@ reported in the literature, providing efficient and independent charging of
 multiple batteries from an uncontrolled variable power source such as that found
 in solar and aeolian systems.
 
+Compilation is done on Linux using The arm-none-eabi compiler package and by
+command line "make" using a makefile. The makefile needs to be modified to suit
+the installation of libraries: change the macro LIBRARY_DIR for libopencm3, and
+FREERTOS_DIR for FreeRTOS.
+
+The ChaN FAT library is provided as it has inbuilt modifications to allow use
+with libopencm3. If ChaN FAT is upgraded, the file sd_spi_loc3_stm32_freertos.c
+must be retained (or adapted as necessary).
+
 More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-software.html)
 
-(c) K. Sarkies 12/09/2015
+(c) K. Sarkies 24/05/2016
 
 BUGS
 
@@ -50,7 +59,7 @@ BUGS
    entry per second.
 2. File dates are sometimes wrong.
 3. Auto tracker often makes odd decisions, such as placing load on a low battery
-   or charging a higher battery.
+   or charging a battery of higher charge.
 
 TODO
 
