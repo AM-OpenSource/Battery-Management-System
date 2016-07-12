@@ -77,6 +77,11 @@ private slots:
     void on_extractButton_clicked();
     void on_voltagePlotCheckBox_clicked();
     void on_plotFileSelectButton_clicked();
+    void on_temperaturePlotCheckbox_clicked();
+    void on_battery1Checkbox_clicked();
+    void on_battery2Checkbox_clicked();
+    void on_battery3Checkbox_clicked();
+    void on_statesPlotCheckbox_clicked();
 private:
 // User Interface object instance
     Ui::DataProcessingMainWindow DataProcessingMainUi;

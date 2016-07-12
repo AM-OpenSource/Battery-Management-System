@@ -640,57 +640,106 @@ void DataProcessingGui::on_voltagePlotCheckBox_clicked()
         DataProcessingMainUi.moduleCheckbox->setEnabled(true);
         DataProcessingMainUi.moduleCheckbox->setVisible(true);
     }
+    DataProcessingMainUi.statesPlotCheckbox->setChecked(false);
+    DataProcessingMainUi.temperaturePlotCheckbox->setChecked(false);
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Action taken on battery1 checkbox selected
+*/
+
+void DataProcessingGui::on_battery1Checkbox_clicked()
+{
+    if (DataProcessingMainUi.statesPlotCheckbox->isChecked())
+    {
+        DataProcessingMainUi.battery2Checkbox->setChecked(false);
+        DataProcessingMainUi.battery3Checkbox->setChecked(false);
+    }
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Action taken on battery2 checkbox selected
+*/
+
+void DataProcessingGui::on_battery2Checkbox_clicked()
+{
+    if (DataProcessingMainUi.statesPlotCheckbox->isChecked())
+    {
+        DataProcessingMainUi.battery1Checkbox->setChecked(false);
+        DataProcessingMainUi.battery3Checkbox->setChecked(false);
+    }
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Action taken on battery3 checkbox selected
+*/
+
+void DataProcessingGui::on_battery3Checkbox_clicked()
+{
+    if (DataProcessingMainUi.statesPlotCheckbox->isChecked())
+    {
+        DataProcessingMainUi.battery2Checkbox->setChecked(false);
+        DataProcessingMainUi.battery1Checkbox->setChecked(false);
+    }
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Action taken on states checkbox selected
+*/
+
+void DataProcessingGui::on_statesPlotCheckbox_clicked()
+{
+// Only one battery can be selected at a time
+    if (DataProcessingMainUi.statesPlotCheckbox->isChecked())
+    {
+        if (DataProcessingMainUi.battery1Checkbox->isChecked())
+        {
+            DataProcessingMainUi.battery2Checkbox->setChecked(false);
+            DataProcessingMainUi.battery3Checkbox->setChecked(false);
+        }
+        else if (DataProcessingMainUi.battery2Checkbox->isChecked())
+        {
+            DataProcessingMainUi.battery3Checkbox->setChecked(false);
+        }
+        DataProcessingMainUi.moduleCheckbox->setChecked(false);
+        DataProcessingMainUi.voltagePlotCheckBox->setChecked(false);
+        DataProcessingMainUi.temperaturePlotCheckbox->setChecked(false);
+    }
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Action taken on temperature checkbox selected
+*/
+
+void DataProcessingGui::on_temperaturePlotCheckbox_clicked()
+{
+    if (DataProcessingMainUi.temperaturePlotCheckbox->isChecked())
+    {
+        DataProcessingMainUi.battery1Checkbox->setChecked(false);
+        DataProcessingMainUi.battery2Checkbox->setChecked(false);
+        DataProcessingMainUi.battery3Checkbox->setChecked(false);
+        DataProcessingMainUi.moduleCheckbox->setChecked(false);
+        DataProcessingMainUi.voltagePlotCheckBox->setChecked(false);
+        DataProcessingMainUi.statesPlotCheckbox->setChecked(false);
+    }
 }
 
 //-----------------------------------------------------------------------------
 /** @brief Select File to be plotted and execute the plot
+
+@todo This procedure deals with all valid plots and as such is a bit involved.
+Later split out into a separate window with different procedures and more
+options.
 */
 
 void DataProcessingGui::on_plotFileSelectButton_clicked()
 {
     bool showCurrent = ! DataProcessingMainUi.voltagePlotCheckBox->isChecked();
     bool showTemperature = DataProcessingMainUi.temperaturePlotCheckbox->isChecked();
+    bool showStates = DataProcessingMainUi.statesPlotCheckbox->isChecked();
     float xScaleLow,xScaleHigh,yScaleLow,yScaleHigh;
     bool showPlot1,showPlot2,showPlot3,showPlot4;
-    int i1,i2,i3,i4;        // Column for data series
-    if (showTemperature)
-    {
-        showPlot1 = true;
-        showPlot2 = false;
-        showPlot3 = false;
-        showPlot4 = false;
-        i1 = 25;
-        yScaleLow = -10;
-        yScaleHigh = 50;
-    }
-    else
-    {
-        if (showCurrent)        // Current
-        {
-            showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
-            showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
-            showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
-            showPlot4 = DataProcessingMainUi.moduleCheckbox->isChecked();
-            i1 = 1;
-            i2 = 7;
-            i3 = 13;
-            i4 = 23;
-            yScaleLow = -20;
-            yScaleHigh = 20;
-        }
-        else                    // Voltage
-        {
-            showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
-            showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
-            showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
-            showPlot4 = false;
-            i1 = 2;
-            i2 = 8;
-            i3 = 14;
-            yScaleLow = 10;
-            yScaleHigh = 18;
-        }
-    }
+    int i1,i2,i3,i4;                // Columns for data series
 
 // Get data file
     QString fileName = QFileDialog::getOpenFileName(0,
@@ -702,45 +751,128 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
     if (! inFile->open(QIODevice::ReadOnly)) return;
     QTextStream inStream(inFile);
 
+// Setup Plot objects
     QwtPlotCurve *curve1;
-    if (showPlot1)
+    curve1 = new QwtPlotCurve();
+    QPolygonF points1;
+    QwtPlotCurve *curve2;
+    curve2 = new QwtPlotCurve();
+    QPolygonF points2;
+    QwtPlotCurve *curve3;
+    curve3 = new QwtPlotCurve();
+    QPolygonF points3;
+    QwtPlotCurve *curve4;
+    curve4 = new QwtPlotCurve();
+    QPolygonF points4;
+
+// States display needs massaging of the data
+    if (showStates)                 // SoC, Voltage and charge state
     {
-        curve1 = new QwtPlotCurve();
-        if (showTemperature) curve1->setTitle("Temperature");
-        else curve1->setTitle("Battery 1");
+        showPlot1 = true;
+        showPlot2 = true;
+        showPlot3 = true;
+        showPlot4 = false;
+        if (DataProcessingMainUi.battery1Checkbox->isChecked())
+        {
+            i1 = 2;
+            i2 = 3;
+            i3 = 4;
+        }
+        else if (DataProcessingMainUi.battery2Checkbox->isChecked())
+        {
+            i1 = 8;
+            i2 = 9;
+            i3 = 10;
+        }
+        else if (DataProcessingMainUi.battery3Checkbox->isChecked())
+        {
+            i1 = 14;
+            i2 = 15;
+            i3 = 16;
+        }
+        yScaleLow = 0;
+        yScaleHigh = 100;
+    }
+// At present Temperature ticked shows only the one plot.
+    else if (showTemperature)       // Temperature
+    {
+        showPlot1 = true;
+        showPlot2 = false;
+        showPlot3 = false;
+        showPlot4 = false;
+        i1 = 25;
+        yScaleLow = -10;
+        yScaleHigh = 50;
+    }
+    else if (showCurrent)           // Current
+    {
+        showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
+        showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
+        showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
+        showPlot4 = DataProcessingMainUi.moduleCheckbox->isChecked();
+        i1 = 1;
+        i2 = 7;
+        i3 = 13;
+        i4 = 23;
+        yScaleLow = -20;
+        yScaleHigh = 20;
+    }
+    else                            // Voltage
+    {
+        showPlot1 = DataProcessingMainUi.battery1Checkbox->isChecked();
+        showPlot2 = DataProcessingMainUi.battery2Checkbox->isChecked();
+        showPlot3 = DataProcessingMainUi.battery3Checkbox->isChecked();
+        showPlot4 = false;
+        i1 = 2;
+        i2 = 8;
+        i3 = 14;
+        yScaleLow = 10;
+        yScaleHigh = 18;
+    }
+
+// Set display parameters and titles
+    if (showStates)                 // SoC, Voltage and charge state
+    {
+        curve1->setTitle("Voltage");
         curve1->setPen(Qt::blue, 2),
         curve1->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-    }
-    QwtPlotCurve *curve2;
-    if (showPlot2)
-    {
-        curve2 = new QwtPlotCurve();
-        curve2->setTitle("Battery 2");
+        curve2->setTitle("State of Charge");
         curve2->setPen(Qt::red, 2),
         curve2->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-    }
-    QwtPlotCurve *curve3;
-    if (showPlot3)
-    {
-        curve3 = new QwtPlotCurve();
-        curve3->setTitle("Battery 3");
-        curve3->setPen(Qt::yellow, 2),
+        curve3->setTitle("Charging Mode");
+        curve3->setPen(Qt::black, 2),
         curve3->setRenderHint(QwtPlotItem::RenderAntialiased, true);
     }
-    QwtPlotCurve *curve4;
-    if (showPlot4)
+    else
     {
-        curve4 = new QwtPlotCurve();
-        curve4->setTitle("Module");
-        curve4->setPen(Qt::green, 2),
-        curve4->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+        if (showPlot1)
+        {
+            if (showTemperature) curve1->setTitle("Temperature");
+            else curve1->setTitle("Battery 1");
+            curve1->setPen(Qt::blue, 2),
+            curve1->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+        }
+        if (showPlot2)
+        {
+            curve2->setTitle("Battery 2");
+            curve2->setPen(Qt::red, 2),
+            curve2->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+        }
+        if (showPlot3)
+        {
+            curve3->setTitle("Battery 3");
+            curve3->setPen(Qt::yellow, 2),
+            curve3->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+        }
+        if (showPlot4)
+        {
+            curve4->setTitle("Module");
+            curve4->setPen(Qt::green, 2),
+            curve4->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+        }
     }
 
     bool ok;
-    QPolygonF points1;
-    QPolygonF points2;
-    QPolygonF points3;
-    QPolygonF points4;
 // Read in data from input file
 // Skip first line as it may be a header
   	QString lineIn;
@@ -774,32 +906,50 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
                 if (previousTime == time) index += 500;
                 else index = time.toMSecsSinceEpoch();
 // Create points to plot
-                if (showPlot1)
+                if (showStates)
                 {
-                    float currentBattery1 = breakdown[i1].simplified().toFloat(&ok);
-                    points1 << QPointF(index,currentBattery1);
+// In this case data to be displayed needs to be converted to common scale.
+                    float batteryVoltage = (breakdown[i1].simplified().toFloat(&ok)-10)*100/10;
+                    points1 << QPointF(index,batteryVoltage);
+                    float stateOfCharge = breakdown[i2].simplified().toFloat(&ok);
+                    points2 << QPointF(index,stateOfCharge);
+                    QString chargeModetext = breakdown[i3].simplified();
+                    float chargeMode;
+                    if (chargeModetext == "Isolate") chargeMode = 5;
+                    if (chargeModetext == "Charge") chargeMode = 10;
+                    if (chargeModetext == "Loaded") chargeMode = 0;
+                    points3 << QPointF(index,chargeMode);
                 }
-                if (showPlot2)
+                else
                 {
-                    float currentBattery2 = breakdown[i2].simplified().toFloat(&ok);
-                    points2 << QPointF(index,currentBattery2);
-                }
-                if (showPlot3)
-                {
-                    float currentBattery3 = breakdown[i3].simplified().toFloat(&ok);
-                    points3 << QPointF(index,currentBattery3);
-                }
-                if (showPlot4)
-                {
-                    float currentModule = breakdown[i4].simplified().toFloat(&ok);
-                    points4 << QPointF(index,currentModule);
+                    if (showPlot1)
+                    {
+                        float currentBattery1 = breakdown[i1].simplified().toFloat(&ok);
+                        points1 << QPointF(index,currentBattery1);
+                    }
+                    if (showPlot2)
+                    {
+                        float currentBattery2 = breakdown[i2].simplified().toFloat(&ok);
+                        points2 << QPointF(index,currentBattery2);
+                    }
+                    if (showPlot3)
+                    {
+                        float currentBattery3 = breakdown[i3].simplified().toFloat(&ok);
+                        points3 << QPointF(index,currentBattery3);
+                    }
+                    if (showPlot4)
+                    {
+                        float currentModule = breakdown[i4].simplified().toFloat(&ok);
+                        points4 << QPointF(index,currentModule);
+                    }
                 }
             }
         }
     }
 // Build plot
     QwtPlot *plot = new QwtPlot(0);
-    if (showTemperature) plot->setTitle("Battery Temperature");
+    if (showStates) plot->setTitle("Battery States");
+    else if (showTemperature) plot->setTitle("Battery Temperature");
     else
     {
         if (showCurrent) plot->setTitle("Battery Currents");
