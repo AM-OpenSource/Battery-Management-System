@@ -107,7 +107,7 @@ void prvSetupHardware(void)
     dmaAdcSetup();
     adcSetup();
     systickSetup();
-    rtc_auto_awake(LSE, 0x7fff);
+    rtc_auto_awake(RCC_LSE, 0x7fff);
     iwdgSetup();
 }
 
@@ -571,7 +571,7 @@ static void adcSetup(void)
     rcc_set_adcpre(RCC_CFGR_ADCPRE_PCLK2_DIV8);
     nvic_enable_irq(NVIC_ADC1_2_IRQ);
     /* Make sure the ADC doesn't run during config. */
-    adc_off(ADC1);
+    adc_power_off(ADC1);
     /* Configure ADC1 for multiple conversion. */
     adc_enable_scan_mode(ADC1);
     adc_set_single_conversion_mode(ADC1);

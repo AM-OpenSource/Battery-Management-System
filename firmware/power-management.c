@@ -21,15 +21,23 @@ are idle for a significant period of time.
 
 FreeRTOS provides the real time operating system.
 
-CANopen provides the smart transducer communications through CanFestival.
+It was intended that CANopen provide the smart transducer communications through
+CanFestival, but this has not been implemented.
 
-The board used is the ET-STM32F103 (RBT6) or ET-ARM-STAMP (RET6).
+The board used is the ET-STM32F103 (RBT6).
 (On this board, ADC1 channels 2 and 3 (PA2, PA3) are shared with USART2 and two
 jumpers J13,J14 need to be moved to access the analogue ports. Also PA6-8 are
-used by the SPI1 for the MMIC card interface, so the latter cannot be used.).
+used by the SPI1 for the MMIC card interface, so the latter cannot be used.)
+
+Hardware using the ET-ARM-STAMP (RET6) has been completed and is permanently in
+use.
 
 Initial 13 July 2013
 FreeRTOS 9 August 2013
+
+10/11/2016: FreeRTOS v 9.0.0
+10/11/2016: libopencm3 commit 011b5c615ad398bd14bbc58e43d9b3335cfaa1b8
+10/11/2016: ChaN FatFS R0.12b
 */
 
 /*
