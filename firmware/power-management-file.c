@@ -95,6 +95,7 @@ Only deal with one disk volume.
 
 void prvFileTask( void *pvParameters )
 {
+    pvParameters = pvParameters;
     static char line[80];
     static uint8_t characterPosition = 0;
     static uint8_t lineLength = 2;
@@ -346,7 +347,7 @@ will be sent. */
             }
 /* If space on the queue, send the type (char), four bytes of file size (MSB
 first) and null terminated filename */
-            if (uxQueueSpacesAvailable(fileReceiveQueue) >= numRead+2)
+            if ((uint16_t)uxQueueSpacesAvailable(fileReceiveQueue) >= numRead+2)
             {
                 xQueueSendToBack(fileReceiveQueue,&type,FILE_SEND_TIMEOUT);
                 uint8_t fileSizeByte = (fileInfo.fsize >> 24) & 0xFF;

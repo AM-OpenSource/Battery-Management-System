@@ -84,7 +84,7 @@ extern xSemaphoreHandle fileSendSemaphore;
 
 /*--------------------------------------------------------------------------*/
 /* Local Variables */
-static uint8_t intf;
+static uint32_t intf;
 static char writeFileName[12];
 static char readFileName[12];
 static uint8_t writeFileHandle;
@@ -101,6 +101,8 @@ them into a line for action as a command.
 
 void prvCommsTask( void *pvParameters )
 {
+    pvParameters = pvParameters;
+
     static uint8_t line[80];
     static uint8_t characterPosition = 0;
 
@@ -858,6 +860,7 @@ global is used until this is fixed.
 
 void resetCallback(xTimerHandle resetHandle)
 {
+    resetHandle = resetHandle;
     overCurrentRelease(intf);
 }
 
@@ -1016,7 +1019,7 @@ void sendString(char* ident, char* string)
 {
     if (configData.config.measurementSend)
     {
-        if (uxQueueSpacesAvailable(commsSendQueue) >=
+        if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >=
             stringLength(ident)+stringLength(string)+3)
         {
             if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_DELAY)) return;
@@ -1048,7 +1051,7 @@ void sendStringLowPriority(char* ident, char* string)
 which is released by the ISR after the last character has been sent. One
 message is then sent. The calling task cannot queue more than one message. */
 /* Hold indefinitely as the message must not be abandoned */
-        if (uxQueueSpacesAvailable(commsSendQueue) >=
+        if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >=
             stringLength(ident)+stringLength(string)+3)
         {
             while (uxQueueMessagesWaiting(commsSendQueue) > 0)
@@ -1082,7 +1085,7 @@ void sendDebugString(char* ident, char* string)
 which is released by the ISR after the last character has been sent. One
 message is then sent. The calling task cannot queue more than one message. */
 /* Hold indefinitely as the message must not be abandoned */
-    if (uxQueueSpacesAvailable(commsSendQueue) >=
+    if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >=
         stringLength(ident)+stringLength(string)+3)
     {
         while (uxQueueMessagesWaiting(commsSendQueue) > 0)
@@ -1105,7 +1108,7 @@ message is then sent. The calling task cannot queue more than one message. */
 
 void commsPrintRegister(uint32_t reg)
 {
-    if (uxQueueSpacesAvailable(commsSendQueue) >= 11)
+    if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >= 11)
     {
         commsPrintHex((reg >> 16) & 0xFFFF);
         commsPrintHex((reg >> 00) & 0xFFFF);
@@ -1124,7 +1127,7 @@ void commsPrintInt(int32_t value)
     uint8_t i=0;
     char buffer[25];
     intToAscii(value, buffer);
-    if (uxQueueSpacesAvailable(commsSendQueue) >= stringLength(buffer))
+    if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >= stringLength(buffer))
         while (buffer[i] > 0)
         {
             commsPrintChar(&buffer[i]);
@@ -1148,7 +1151,7 @@ void commsPrintHex(uint32_t value)
         buffer[i] = "0123456789ABCDEF"[value & 0xF];
         value >>= 4;
     }
-    if (uxQueueSpacesAvailable(commsSendQueue) >= 5)
+    if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >= 5)
     {
         for (i = 4; i > 0; i--)
         {
@@ -1166,7 +1169,7 @@ void commsPrintHex(uint32_t value)
 
 void commsPrintString(char *ch)
 {
-    if (uxQueueSpacesAvailable(commsSendQueue) >= stringLength(ch))
+    if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >= stringLength(ch))
         while(*ch) commsPrintChar(ch++);
 }
 
@@ -1214,6 +1217,7 @@ power hungry communications circuits to be used only when the GUI is open.
 
 void lapseCommsCallback(xTimerHandle lapseCommsTimer)
 {
+    lapseCommsTimer = lapseCommsTimer;
     configData.config.enableSend = false;    
 }
 

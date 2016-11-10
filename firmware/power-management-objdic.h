@@ -223,7 +223,7 @@ struct Config
 /* Charger Control Variables */
     uint8_t chargerStrategy;    /* Bitmap of charging strategies (see charger). */
     int16_t restTime;           /* Minimum time to rest battery under charge */
-    int16_t absorptionTime;     /* Minimum time for battery to stay in absorption */
+    uint16_t absorptionTime;    /* Minimum time for battery to stay in absorption */
     int16_t minDutyCycle;       /* Minimum PWM duty cycle */
     int16_t floatTime;          /* Time before battery placed in float phase */
 /* Delay Variables */

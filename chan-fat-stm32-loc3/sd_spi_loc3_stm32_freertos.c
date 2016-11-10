@@ -78,7 +78,7 @@ typedef bool BOOL;
 
 #include "power-management-comms.h"
 
-/* Regardless of the FreeRtos config, force re-entrancy for this file.
+/* Regardless of the FreeRtos config, force re-entrancy for this file.*/
 #ifdef _FS_REENTRANT
 #undef _FS_REENTRANT
 #endif
@@ -579,7 +579,7 @@ static void power_on (void)
 
 /* drain SPI */
     while (!(SPI_SR(SPI_SD) & SPI_SR_TXE));
-    dummyread = SPI_DR(SPI_SD);
+//    dummyread = SPI_DR(SPI_SD);
 
 #ifdef STM32_SD_USE_DMA
 /* enable DMA clock */

@@ -88,27 +88,27 @@ int main(void)
     initComms();                /* From comms */
 
 /* Start the watchdog task. */
-    xTaskCreate(prvWatchdogTask, (signed portCHAR * ) "Watchdog", \
+    xTaskCreate(prvWatchdogTask, (portCHAR * ) "Watchdog", \
                 configMINIMAL_STACK_SIZE, NULL, WATCHDOG_TASK_PRIORITY, NULL);
 
 /* Start the communications task. */
-    xTaskCreate(prvCommsTask, (signed portCHAR * ) "Communications", \
+    xTaskCreate(prvCommsTask, (portCHAR * ) "Communications", \
                 configMINIMAL_STACK_SIZE, NULL, COMMS_TASK_PRIORITY, NULL);
 
 /* Start the file management task. */
-    xTaskCreate(prvFileTask, (signed portCHAR * ) "File", \
+    xTaskCreate(prvFileTask, (portCHAR * ) "File", \
                 configMINIMAL_STACK_SIZE, NULL, FILE_TASK_PRIORITY, NULL);
 
 /* Start the measurement task. */
-    xTaskCreate(prvMeasurementTask, (signed portCHAR * ) "Measurement", \
+    xTaskCreate(prvMeasurementTask, (portCHAR * ) "Measurement", \
                 configMINIMAL_STACK_SIZE, NULL, MEASUREMENT_TASK_PRIORITY, NULL);
 
 /* Start the monitor task. */
-    xTaskCreate(prvMonitorTask, (signed portCHAR * ) "Monitor", \
+    xTaskCreate(prvMonitorTask, (portCHAR * ) "Monitor", \
                 configMINIMAL_STACK_SIZE, NULL, MONITOR_TASK_PRIORITY, NULL);
 
 /* Start the charger task. */
-    xTaskCreate(prvChargerTask, (signed portCHAR * ) "Charger", \
+    xTaskCreate(prvChargerTask, (portCHAR * ) "Charger", \
                 configMINIMAL_STACK_SIZE, NULL, CHARGER_TASK_PRIORITY, NULL);
 
 /* Start the scheduler. */

@@ -90,6 +90,8 @@ A/D measurements are performed in a single conversion and stored via DMA.
 
 void prvMeasurementTask(void *pvParameters)
 {
+    pvParameters = pvParameters;
+
     uint8_t i,j;
     int32_t av[N_CONV];
     uint8_t channel_array[N_CONV];
@@ -354,7 +356,7 @@ void checkMeasurementWatchdog(void)
     if (measurementWatchdogCount++ > 10*getMeasurementDelay()/getWatchdogDelay())
     {
         vTaskDelete(prvMeasurementTask);
-        xTaskCreate(prvMeasurementTask, (signed portCHAR * ) "Measurement", \
+        xTaskCreate(prvMeasurementTask, (portCHAR * ) "Measurement", \
                 configMINIMAL_STACK_SIZE, NULL, MEASUREMENT_TASK_PRIORITY, NULL);
         sendDebugString("D","Measurement Restarted");
         recordString("D","Measurement Restarted");

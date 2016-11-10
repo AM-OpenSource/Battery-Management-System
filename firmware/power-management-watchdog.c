@@ -66,6 +66,8 @@ timeout has occurred.
 
 void prvWatchdogTask(void *pvParameters)
 {
+    pvParameters = pvParameters;
+
     while (1)
     {
 /* Reset the hardware independent watchdog timer */

@@ -106,6 +106,7 @@ battery or batteries that have been designated for charging.
 
 void prvChargerTask(void *pvParameters)
 {
+    pvParameters = pvParameters;
 
     initGlobals();
 
@@ -401,7 +402,7 @@ void checkChargerWatchdog(void)
     if (chargerWatchdogCount++ > 10*getChargerDelay()/getWatchdogDelay())
     {
         vTaskDelete(prvChargerTask);
-        xTaskCreate(prvChargerTask, (signed portCHAR * ) "Charger", \
+        xTaskCreate(prvChargerTask, (portCHAR * ) "Charger", \
                     configMINIMAL_STACK_SIZE, NULL, CHARGER_TASK_PRIORITY, NULL);
         sendDebugString("D","Charger Restarted");
         recordString("D","Charger Restarted");

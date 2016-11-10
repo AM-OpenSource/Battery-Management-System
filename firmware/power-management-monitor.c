@@ -109,6 +109,7 @@ algorithm during lightly loaded periods.
 
 void prvMonitorTask(void *pvParameters)
 {
+    pvParameters = pvParameters;
     initGlobals();
 
     uint16_t decisionStatus = 0;    
@@ -349,7 +350,8 @@ the SoC. Maximum charge is the battery capacity in ampere seconds. */
                 batteryCharge[i] += getBatteryAccumulatedCharge(i);
                 uint32_t chargeMax = getBatteryCapacity(i)*3600*256;
                 if (batteryCharge[i] < 0) batteryCharge[i] = 0;
-                if (batteryCharge[i] > chargeMax) batteryCharge[i] = chargeMax;
+                if ((uint32_t)batteryCharge[i] > chargeMax)
+                    batteryCharge[i] = chargeMax;
                 batterySoC[i] = batteryCharge[i]/(getBatteryCapacity(i)*36);
 /* Collect battery charge fill state estimations. */
                 uint16_t batteryAbsVoltage = abs(getBatteryVoltage(i));
@@ -383,9 +385,9 @@ pushing all missing batteries to the low end (SoC = 0 set above). */
         }
 /* Find the batteries with the longest and shortest isolation times. */
         uint8_t longestBattery = 0;
-        uint8_t shortestBattery = 0;
         uint32_t longestTime = 0;
-        uint32_t shortestTime = 0xFFFFFFFF;
+//        uint8_t shortestBattery = 0;
+//        uint32_t shortestTime = 0xFFFFFFFF;
         for (i=0; i<NUM_BATS; i++)
         {
             if (batteryHealthState[i] != missingH)
@@ -395,11 +397,11 @@ pushing all missing batteries to the low end (SoC = 0 set above). */
                     longestTime = batteryIsolationTime[i];
                     longestBattery = i+1;
                 }
-                if (batteryIsolationTime[i] < shortestTime)
+/*                if (batteryIsolationTime[i] < shortestTime)
                 {
                     shortestTime = batteryIsolationTime[i];
                     shortestBattery = i+1;
-                }
+                } */
             }
         }
 
@@ -942,7 +944,7 @@ void checkMonitorWatchdog(void)
     if (monitorWatchdogCount++ > 10*getMonitorDelay()/getWatchdogDelay())
     {
         vTaskDelete(prvMonitorTask);
-        xTaskCreate(prvMonitorTask, (signed portCHAR * ) "Monitor", \
+        xTaskCreate(prvMonitorTask, (portCHAR * ) "Monitor", \
                     configMINIMAL_STACK_SIZE, NULL, MONITOR_TASK_PRIORITY, NULL);
         sendDebugString("D","Monitor Restarted");
         recordString("D","Monitor Restarted");

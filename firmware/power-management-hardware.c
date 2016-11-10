@@ -225,10 +225,10 @@ uint8_t getSwitchControlBits(void)
 @param[in] uint8_t interface: interface 0-5, being batteries 1-3, loads 1-2, module.
 */
 
-void overCurrentReset(uint8_t interface)
+void overCurrentReset(uint32_t interface)
 {
-    uint32_t port;
-    uint16_t bit;
+    uint32_t port = BATTERY1_OVERCURRENT_RESET_PORT;
+    uint16_t bit = BATTERY1_OVERCURRENT_RESET_BIT;
     switch (interface)
     {
         case 0:
@@ -265,10 +265,10 @@ void overCurrentReset(uint8_t interface)
 @param[in] uint8_t interface: interface 0-5, being batteries 1-3, loads 1-2, module.
 */
 
-void overCurrentRelease(uint8_t interface)
+void overCurrentRelease(uint32_t interface)
 {
-    uint32_t port;
-    uint16_t bit;
+    uint32_t port = BATTERY1_OVERCURRENT_RESET_PORT;
+    uint16_t bit = BATTERY1_OVERCURRENT_RESET_BIT;
     switch (interface)
     {
         case 0:
@@ -587,7 +587,8 @@ static void adcSetup(void)
     for (i = 0; i < 800000; i++)    /* Wait a bit. */
         __asm__("nop");
     adc_reset_calibration(ADC1);
-    adc_calibration(ADC1);
+    adc_calibrate_async(ADC1);
+    while (adc_is_calibrating(ADC1));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -755,7 +756,7 @@ void usart1_isr(void)
             usart_send(USART1, data);
         else
         {
-            int wokenTask;
+            int32_t wokenTask;
             usart_disable_tx_interrupt(USART1);
             xSemaphoreGiveFromISR(commsEmptySemaphore,&wokenTask);    /* Flag as empty */
         }
