@@ -1,6 +1,8 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Measure_file Measurement
 
-Defines the Measurement Task. This produces the basic measurements and avoids
+@brief Measurement Task
+
+This produces the basic measurements and avoids
 all refined processing apart from scaling of raw measurements and computation
 of battery parameters that need to be done in real time.
 
@@ -15,6 +17,7 @@ Each interface has a data structure holding the currents and voltages.
 
 Initial 29 September 2013
 Refactor 4 January 2014
+Update 15 November 2016
 */
 
 /*
@@ -35,6 +38,8 @@ Refactor 4 January 2014
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -74,7 +79,7 @@ static union InterfaceGroup currents;
 static union InterfaceGroup voltages;
 
 /*--------------------------------------------------------------------------*/
-/* @brief Measurement Task
+/** @brief Measurement Task
 
 This measures the interface currents and voltages and passes them to other
 tasks for processing and storage.
@@ -124,7 +129,9 @@ void prvMeasurementTask(void *pvParameters)
         vTaskDelay(getMeasurementDelay() );
 /* Reset watchdog counter */
         measurementWatchdogCount = 0;
-/* Fire off a burst of conversions and average the results.
+/**
+<ol>
+<li> Fire off a burst of conversions and average the results.
 This averages out variations due to PWM provided they are not high frequency. */
         uint16_t burst = 0;
         for (burst=0; burst < N_SAMPLES; burst++)
@@ -132,7 +139,8 @@ This averages out variations due to PWM provided they are not high frequency. */
             adc_start_conversion_regular(ADC1);
 /* Check if conversion ended */
             while (adcEOC() == 0) taskYIELD();
-/* Sum over the sample set with scaling and offset for the interfaces and
+/**
+<li> Sum over the sample set with scaling and offset for the interfaces and
 temperature */
             for (j = 0; j < N_CONV-1; j+=2)
             {
@@ -143,7 +151,8 @@ temperature */
         }
 
 /* Process the averaged results. */
-/* Compute averages from the burst; scale and offset to the real quantities;
+/**
+<li> Compute averages from the burst; scale and offset to the real quantities;
 and reset the averages for the next cycle. */
         for (i=0; i<NUM_IFS; i++)
         {
@@ -158,16 +167,19 @@ and reset the averages for the next cycle. */
 
         for (i=0; i<NUM_BATS; i++)
         {
-/* Compute the batteries' charge state by integration of current flow over time.
-Currents are in amperes (x256). Divide by the measurement interval in seconds so
-that charge is in Coulombs (x256). Limit charge to battery's capacity. Sign is
-determined by the fact that positive current flows out of the batteries. */
+/**
+<li> Compute the batteries' charge state by integration of current flow over
+time. Currents are in amperes (times 256). Divide by the measurement interval in
+seconds so that charge is in Coulombs (times 256). Limit charge to battery's
+capacity. Sign is determined by the fact that positive current flows out of the
+batteries. */
             int32_t batteryCurrent = currents.dataArray.battery[i]-
                                         getBatteryCurrentOffset(i);
             accumulatedBatteryCharge[i] -= batteryCurrent*
                     (int32_t)(1000/(portTICK_RATE_MS*getMeasurementDelay()));
 
-/* Check if a significant change in battery current occurred (more than about
+/**
+<li> Check if a significant change in battery current occurred (more than about
 400mA) and use this to estimate the resistance of the battery.
 Note that battery resistance is scaled by 65536 due to its low real value.
 The algorithm computes the averaged voltage and current steps and divides
@@ -179,10 +191,11 @@ averaged are linear unbiassed estimators. */
             int32_t currentStep = abs(batteryCurrent-lastBatteryCurrent[i]);
             if (currentStep > 100)
             {
-/* Apply a weighted IIR filter to estimate the average voltage and current. */
-/* The forgetting factor getAlphaR() (<1) is multiplied by 256 to make integer,
-therefore the correction factors need to be divided back by 256. */
-/* Seed the filter with the most recent measurements (rather than zero) */
+/**
+<li> Apply a weighted IIR filter to estimate the average voltage and current.
+The forgetting factor getAlphaR() (<1) is multiplied by 256 to make integer,
+therefore the correction factors need to be divided back by 256.
+Seed the filter with the most recent measurements (rather than zero) */
                 if (voltageStepAv[i] == 0) voltageStepAv[i] = voltageStep;
                 voltageStepAv[i] = voltageStepAv[i] +
                          ((getAlphaR()*(voltageStep - voltageStepAv[i])) >> 8);
@@ -218,6 +231,7 @@ static void initGlobals(void)
 /** @brief Access the Battery Resistance Average Estimate
 
 @param[in] battery: 0..NUM_BATS-1
+@returns int16_t battery resistance average times 65536.
 */
 
 int16_t getBatteryResistanceAv(int battery)
@@ -236,6 +250,7 @@ synchronization problem. It is intended for passing the accumulation of charge
 to the task that is monitoring the battery state.
 
 @param[in] battery: 0..NUM_BATS-1
+@returns int16_t Battery Accumulated Charge times 256
 */
 
 int16_t getBatteryAccumulatedCharge(int battery)
@@ -251,6 +266,7 @@ int16_t getBatteryAccumulatedCharge(int battery)
 /** @brief Access the Measured Battery Current
 
 @param[in] battery: 0..NUM_BATS-1
+@returns int16_t Battery Current times 256
 */
 
 int16_t getBatteryCurrent(int battery)
@@ -262,6 +278,7 @@ int16_t getBatteryCurrent(int battery)
 /** @brief Access the Measured Battery Voltage
 
 @param[in] battery: 0..NUM_BATS-1
+@returns int16_t Battery Voltage times 256
 */
 
 int16_t getBatteryVoltage(int battery)
@@ -273,6 +290,7 @@ int16_t getBatteryVoltage(int battery)
 /** @brief Access the Measured Load Current
 
 @param[in] load: 0..NUM_LOADS-1
+@returns int16_t Load Current times 256
 */
 
 int16_t getLoadCurrent(int load)
@@ -284,6 +302,7 @@ int16_t getLoadCurrent(int load)
 /** @brief Access the Measured Load Voltage
 
 @param[in] load: 0..NUM_LOADS-1
+@returns int16_t Load Voltage times 256
 */
 
 int16_t getLoadVoltage(int load)
@@ -295,6 +314,7 @@ int16_t getLoadVoltage(int load)
 /** @brief Access the Measured Panel Current
 
 @param[in] panel: 0..NUM_PANELS-1
+@returns int16_t Panel Current times 256
 */
 
 int16_t getPanelCurrent(int panel)
@@ -306,6 +326,7 @@ int16_t getPanelCurrent(int panel)
 /** @brief Access the Measured Panel Voltage
 
 @param[in] panel: 0..NUM_PANELS-1
+@returns int16_t Panel Voltage times 256
 */
 
 int16_t getPanelVoltage(int panel)
@@ -317,6 +338,7 @@ int16_t getPanelVoltage(int panel)
 /** @brief Access the Current through an Interface
 
 @param[in] intf: 0..NUM_IFS-1
+@returns int16_t Interface Current times 256
 */
 
 int16_t getCurrent(int intf)
@@ -328,6 +350,7 @@ int16_t getCurrent(int intf)
 /** @brief Access the Voltage at an Interface
 
 @param[in] intf: 0..NUM_IFS-1
+@returns int16_t Interface Voltage times 256
 */
 
 int16_t getVoltage(int intf)
@@ -338,6 +361,7 @@ int16_t getVoltage(int intf)
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Temperature
 
+@returns int16_t Temperature times 256
 */
 
 int32_t getTemperature(void)
@@ -362,4 +386,6 @@ void checkMeasurementWatchdog(void)
         recordString("D","Measurement Restarted");
     }
 }
+
+/**@}*/
 

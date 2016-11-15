@@ -1,6 +1,8 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Watchdog_file Watchdog
 
-Defines the Watchdog Task. This task monitors other tasks for aberrant
+@brief Watchdog Task.
+
+This task monitors the other tasks for aberrant
 behaviour. Each task runs through its program and then waits a specified period
 of time. The tasks are required to reset a timeout variable on each pass.
 The watchdog task then monitors these variables to detect if the associated
@@ -36,6 +38,8 @@ Initial 15 March 2014
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**@{*/
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -58,7 +62,7 @@ Initial 15 March 2014
 /* Local Persistent Variables */
 
 /*--------------------------------------------------------------------------*/
-/* @brief Watchdog Task
+/** @brief Watchdog Task
 
 Each call to the check functions in the task APIs should restart the task if a
 timeout has occurred.
@@ -78,4 +82,6 @@ void prvWatchdogTask(void *pvParameters)
         checkMonitorWatchdog();
     }
 }
+
+/**@}*/
 

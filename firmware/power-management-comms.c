@@ -1,6 +1,6 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Comms_file Communications
 
-Defines the Communications Task and library
+@brief Communications Task and library
 
 This task receives incoming characters and assembles them into a command line.
 The command is then interpreted and executed.
@@ -32,6 +32,8 @@ Initial 29 September 2013
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -93,10 +95,10 @@ static int lapseCommsID;
 static xTimerHandle lapseCommsTimer;
 
 /*--------------------------------------------------------------------------*/
-/* @brief Communications Receive Task
+/** @brief Communications Receive Task
 
 This collects characters received over the communications interface and packages
-them into a line for action as a command.
+them for action as a command.
 */
 
 void prvCommsTask( void *pvParameters )
@@ -108,7 +110,8 @@ void prvCommsTask( void *pvParameters )
 
     initGlobals();
 
-/* Timer to cause communications to cease if nothing received for 10 seconds */
+/* Timer to cause outgoing communications to cease if nothing received for 10
+seconds */
     lapseCommsTimer = xTimerCreate("Lapse Comms",10000,pdFALSE,0,lapseCommsCallback);
 
     while(1)
@@ -129,7 +132,7 @@ indefinitely waiting for input. */
 }
 
 /*--------------------------------------------------------------------------*/
-/* @brief Initialize
+/** @brief Initialize
 
 This initializes the queues and semaphores used by the task.
 */
@@ -162,10 +165,12 @@ static void initGlobals(void)
 /*--------------------------------------------------------------------------*/
 /** @brief Parse a command line and act on it.
 
-Commands begin with a lower case letter a, d, p or f followed by an upper case
-command letter.
+Commands to and from the BMS are single line ASCII text strings consisting of
+a category character (a=action, d=data request, p=parameter, f=file) followed
+by an upper case command character and an arbitrary length set of parameters
+(limited to 80 character line length in total).
 
-Unrecognizable messages should just be discarded.
+Unrecognizable messages are just discarded.
 
 @param[in] char *line: the command line in ASCII
 */
@@ -173,14 +178,16 @@ Unrecognizable messages should just be discarded.
 static void parseCommand(uint8_t* line)
 {
 /* ======================== Action commands ========================  */
+/**
+<b>Action Commands</b> */
     if (line[0] == 'a')
     {
-/* Snm Manually set Switch.
-S followed by battery (1-3, 0 = none) and load (0-1)/panel (2).
-Each two-bit field represents a load or panel, and the setting is the
-battery to be connected (no two batteries can be connected to a load/panel).
-The final bit pattern of settings go into PB8-13.
-Preserve the lower 8 bits. */
+/**
+<ul>
+<li> <b>Snm</b> Manually set Switch. Follow by battery n (1-3, 0 = none) and
+load m (0-1)/panel (2). Each two-bit field represents a load or panel, and the
+setting is the battery to be connected (no two batteries can be connected to a
+load/panel). */
         switch (line[1])
         {
         case 'S':
@@ -191,13 +198,14 @@ Preserve the lower 8 bits. */
                 if (setting == 2) setPanelSwitchSetting(battery);
                 break;
             }
-/* R Reset a tripped overcurrent circuit breaker.
-Set a FreeRTOS timer to expire after 500ms at which time the reset line is
-released. The command is followed by an interface number 0-5 being batteries
+/**
+<li> <b>Rn</b> Reset a tripped overcurrent circuit breaker.
+Set a FreeRTOS timer to expire after 250ms at which time the reset line is
+released. The command is followed by an interface number n=0-5 being batteries
 1-3, loads 1-2 and module. */
         case 'R':
             {
-                portTickType resetTime = 500;
+                portTickType resetTime = 250;
                 intf = line[2]-'0';
                 if (intf > NUM_IFS-1) break;
                 xTimerHandle resetHandle
@@ -207,13 +215,15 @@ released. The command is followed by an interface number 0-5 being batteries
                 overCurrentReset(intf);
                 break;
             }
-/* Write the current configuration block to FLASH */
+/**
+<li> <b>W</b> Write the current configuration block to FLASH */
         case 'W':
             {
                 writeConfigBlock();
                 break;
             }
-/* Send an ident response */
+/**
+<li> <b>E</b> Send an ident response */
         case 'E':
             {
                 char ident[35] = "Battery Management System,";
@@ -225,7 +235,8 @@ released. The command is followed by an interface number 0-5 being batteries
                 sendStringLowPriority("dE",ident);
                 break;
             }
-/* Set the battery SoC from the OCV */
+/**
+<li> <b>B</b> Set the battery SoC from the measured OCV */
         case 'B':
             {
                 uint8_t battery = line[2]-'1';
@@ -235,12 +246,19 @@ released. The command is followed by an interface number 0-5 being batteries
             }
         }
     }
+/**
+</ul> */
 /* ======================== Data request commands ================  */
+/**
+<b>Data Request Commands</b> */
     else if (line[0] == 'd')
     {
         switch (line[1])
         {
-/* S Ask for all switch settings to be sent as well as control settings. */
+/**
+<ul>
+<li> <b>S</b> Ask for all switch settings to be sent as well as control
+settings. */
         case 'S':
             {
                 sendResponse("dS",(int)getSwitchControlBits());
@@ -248,7 +266,8 @@ released. The command is followed by an interface number 0-5 being batteries
                 sendResponse("dD",controlByte);
                 break;
             }
-/* Bn Ask for battery parameters to be sent */
+/**
+<li> <b>Bn</b> Ask for battery n=1-3 parameters to be sent */
         case 'B':
             {
                 char id[] = "pR0";
@@ -268,7 +287,8 @@ released. The command is followed by an interface number 0-5 being batteries
                                    (int32_t)configData.config.absorptionVoltage[battery]);
                 break;
             }
-/* T Ask for monitor strategy parameters to be sent. */
+/**
+<li> <b>T</b> Ask for monitor strategy parameters to be sent. */
         case 'T':
             {
                 char id[] = "pts";
@@ -283,7 +303,8 @@ released. The command is followed by an interface number 0-5 being batteries
                 dataMessageSend(id,(int32_t)configData.config.floatBulkSoC,0);
                 break;
             }
-/* C Ask for charger strategy parameters to be sent. */
+/**
+<li> <b>C</b> Ask for charger strategy parameters to be sent. */
         case 'C':
             {
                 char id[] = "pcs";
@@ -300,53 +321,65 @@ released. The command is followed by an interface number 0-5 being batteries
             }
         }
     }
-/* ================ Parameter setting commands ================  */
+/**
+</ul> */
+/* ================ Parameter Setting commands ================  */
+/**
+<b>Parameter Setting Commands</b> */
     else if (line[0] == 'p')
     {
         uint8_t battery = line[2]-'1';
         switch (line[1])
         {
-/* a-, a+ Turn autoTracking on or off */
+/**
+<ul>
+<li> <b>a-, a+</b> Turn autoTracking on or off */
         case 'a':
             {
                 if (line[2] == '-') configData.config.autoTrack = false;
                 else if (line[2] == '+') configData.config.autoTrack = true;
                 break;
             }
-/* c-, c+ Turn communications sending on or off */
+/**
+<li> <b>c-, c+</b> c-, c+ Turn communications sending on or off */
         case 'c':
             {
                 if (line[2] == '-') configData.config.enableSend = false;
                 else if (line[2] == '+') configData.config.enableSend = true;
                 break;
             }
-/* C Start a calibration sequence */
+/**
+<li> <b>C</b> Start a calibration sequence */
         case 'C':
             {
                 startCalibration();
                 break;
             }
-/* d Turn on debug messages */
+/**
+<li> <b>d-, d+</b> Turn on debug messages */
         case 'd':
             {
                 if (line[2] == '+') configData.config.debugMessageSend = true;
                 if (line[2] == '-') configData.config.debugMessageSend = false;
                 break;
             }
-/* Hxx Set time from an ISO 8601 formatted string. */
+/**
+<li> <b>Hxxxx</b> Set time from an ISO 8601 formatted string. */
         case 'H':
             {
                 setTimeFromString((char*)line+2);
                 break;
             }
-/* M-, M+ Turn on/off data messaging (mainly for debug) */
+/**
+<li> <b>M-, M+</b> Turn on/off data messaging (mainly for debug) */
         case 'M':
             {
                 if (line[2] == '-') configData.config.measurementSend = false;
                 else if (line[2] == '+') configData.config.measurementSend = true;
                 break;
             }
-/* r-, r+ Turn recording on or off */
+/**
+<li> <b>r-, r+</b> Turn recording on or off */
         case 'r':
             {
                 if (line[2] == '-') configData.config.recording = false;
@@ -356,7 +389,9 @@ released. The command is followed by an interface number 0-5 being batteries
             }
 /*--------------------*/
 /* BATTERY parameters */
-/* Tntxx Set battery type and capacity, n is battery, t is type, xx is capacity */
+/**
+<li> <b>Tntxx</b> Set battery type and capacity, n is battery, t is type,
+xx is capacity */
         case 'T':
             {
                 if (battery < 3)
@@ -373,14 +408,16 @@ released. The command is followed by an interface number 0-5 being batteries
                 }
                 break;
             }
-/* m-, m+ Turn on/off battery missing */
+/**
+<li> <b>m-, m+</b> Turn on/off battery missing */
         case 'm':
             {
                 if (line[3] == '-') setBatteryMissing(battery,false);
                 else if (line[3] == '+') setBatteryMissing(battery,true);
                 break;
             }
-/* Inxx Set bulk current limit, n is battery, xx is limit */
+/**
+<li> <b>Inxx</b> Set bulk current limit, n is battery, xx is limit */
         case 'I':
             {
                 if (battery < 3)
@@ -388,7 +425,8 @@ released. The command is followed by an interface number 0-5 being batteries
                         asciiToInt((char*)line+3);
                 break;
             }
-/* Anxx Set battery gassing voltage limit, n is battery, xx is limit */
+/**
+<li> <b>Anxx</b> Set battery gassing voltage limit, n is battery, xx is limit */
         case 'A':
             {
                 if (battery < 3)
@@ -396,7 +434,8 @@ released. The command is followed by an interface number 0-5 being batteries
                         asciiToInt((char*)line+3);
                 break;
             }
-/* fnxx Set battery float current trigger, n is battery, xx is trigger */
+/**
+<li> <b>fnxx</b> Set battery float current trigger, n is battery, xx is trigger */
         case 'f':
             {
                 if (battery < 3)
@@ -404,7 +443,8 @@ released. The command is followed by an interface number 0-5 being batteries
                         asciiToInt((char*)line+3);
                 break;
             }
-/* Fnxx Set battery float voltage limit, n is battery, xx is limit */
+/**
+<li> <b>Fnxx</b> Set battery float voltage limit, n is battery, xx is limit */
         case 'F':
             {
                 if (battery < 3)
@@ -412,7 +452,8 @@ released. The command is followed by an interface number 0-5 being batteries
                         asciiToInt((char*)line+3);
                 break;
             }
-/* z zero current calibration by forcing current offset. */
+/**
+<li> <b>zn</b> zero current calibration by forcing current offset, n is battery */
         case 'z':
             {
                 if (battery < 3)
@@ -421,8 +462,9 @@ released. The command is followed by an interface number 0-5 being batteries
             }
 /*--------------------*/
 /* MONITOR parameters */
-/* sn Set monitor strategy byte n for keeping isolation or avoiding loading
-the battery under charge. */
+/**
+<li> <b>sm</b> Set monitor strategy byte m for keeping isolation or avoiding
+loading the battery under charge. */
         case 's':
             {
                 uint8_t monitorStrategy = line[2]-'0';
@@ -430,25 +472,29 @@ the battery under charge. */
                     configData.config.monitorStrategy = monitorStrategy;
                 break;
             }
-/* vx set low voltage threshold, x is voltage times 256. */
+/**
+<li> <b>vx</b> set low voltage threshold, x is voltage times 256. */
         case 'v':
             {
                 configData.config.lowVoltage = asciiToInt((char*)line+2);
                 break;
             }
-/* Vx set critical voltage threshold, x is voltage times 256. */
+/**
+<li> <b>Vx</b> set critical voltage threshold, x is voltage times 256. */
         case 'V':
             {
                 configData.config.criticalVoltage = asciiToInt((char*)line+2);
                 break;
             }
-/* xx set low SoC threshold, x is voltage times 256. */
+/**
+<li> <b>xx</b> set low SoC threshold, x is voltage times 256. */
         case 'x':
             {
                 configData.config.lowSoC = asciiToInt((char*)line+2);
                 break;
             }
-/* Xx set critical SoC threshold, x is voltage times 256. */
+/**
+<li> <b>Xx</b> set critical SoC threshold, x is voltage times 256. */
         case 'X':
             {
                 configData.config.criticalSoC = asciiToInt((char*)line+2);
@@ -456,7 +502,8 @@ the battery under charge. */
             }
 /*--------------------*/
 /* CHARGER parameters */
-/* Sx set charger strategy. */
+/**
+<li> <b>Sm</b> set charger strategy byte m. */
         case 'S':
             {
                 uint8_t chargerStrategy = line[2]-'0';
@@ -464,31 +511,36 @@ the battery under charge. */
                     configData.config.chargerStrategy = chargerStrategy;
                 break;
             }
-/* Rx set charger algorithm minimum rest time in seconds. */
+/**
+<li> <b>Rx</b> set charger algorithm minimum rest time x in seconds. */
         case 'R':
             {
                 configData.config.restTime = asciiToInt((char*)line+2);
                 break;
             }
-/* Ax set charger algorithm minimum gassing phase time in seconds.. */
+/**
+<li> <b>Ax</b> set charger algorithm minimum gassing phase time x in seconds. */
         case 'G':
             {
                 configData.config.absorptionTime = asciiToInt((char*)line+2);
                 break;
             }
-/* Dx set charger minimum duty cycle. */
+/**
+<li> <b>Dx</b> set charger minimum duty cycle x in seconds. */
         case 'D':
             {
                 configData.config.minDutyCycle = asciiToInt((char*)line+2);
                 break;
             }
-/* Fx set charger time to float in seconds. */
+/**
+<li> <b>Fx</b> set charger time to float x in seconds. */
         case 'e':
             {
                 configData.config.floatTime = asciiToInt((char*)line+2);
                 break;
             }
-/* Bx set charger SoC to change float to bulk. */
+/**
+<li> <b>Bx</b> set charger SoC x to change from float to bulk phase. */
         case 'B':
             {
                 configData.config.floatBulkSoC = asciiToInt((char*)line+2);
@@ -496,6 +548,9 @@ the battery under charge. */
             }
         }
     }
+/**
+</ul> */
+
 /* ======================== File commands ================ */
 /*
 F           - get free clusters
@@ -511,11 +566,15 @@ M           - Mount the SD card.
 All commands return an error status byte at the end.
 Only one file for writing and a second for reading is possible.
 Data is not written to the file externally. */
+/**
+<b>File Commands</b> */
     else if (line[0] == 'f')
     {
         switch (line[1])
         {
-/* Return number of free clusters followed by the cluster size in bytes. */
+/**
+<ul>
+<li> <b>F</b> Return number of free clusters followed by the cluster size in bytes. */
             case 'F':
             {
                 uint8_t wordBuf;
@@ -545,7 +604,8 @@ Data is not written to the file externally. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Open a file for writing */
+/**
+<li> <b>Wf</b> Open a file f=filename for writing */
             case 'W':
             {
                 if (stringLength((char*)line+2) < 12)
@@ -564,7 +624,8 @@ Data is not written to the file externally. */
                 }
                 break;
             }
-/* Open a file for Reading */
+/**
+<li> <b>Rf</b> Open a file f=filename for Reading */
             case 'R':
             {
                 if (stringLength((char*)line+2) < 12)
@@ -583,7 +644,9 @@ Data is not written to the file externally. */
                 }
                 break;
             }
-/* Close file for write or read file. The file handle is a two character integer. */
+/**
+<li> <b>Ghh</b> hh is the file handle. Close file for write or read file. The
+file handle is a two character integer. */
             case 'C':
             {
                 uint8_t fileStatus = FR_INT_ERR;
@@ -602,11 +665,13 @@ Data is not written to the file externally. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Read a record of data from the read or write file. The data starts from the
-end of the previous block that was read (or the file start if just opened).
-The file handle is a two character integer. A block of bytes is read from
-the file and stored in a circular buffer. A record is taken from this block and
-sent, the rest remains in the buffer until the next request. */
+/**
+<li> <b>Ghh</b> hh is the file handle. Read a record of data from the read or
+write file. The data starts from the end of the previous block that was read
+(or the file start if just opened). The file handle is a two character integer.
+A block of bytes is read from the file and stored in a circular buffer. A record
+is taken from this block and sent, the rest remains in the buffer until the next
+request. */
 #define GET_RECORD_SIZE 80
             case 'G':
             {
@@ -676,10 +741,11 @@ sent, the rest remains in the buffer until the next request. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Get a directory listing. Gets all items in the directory and sends the
-type,size and name, each group preceded by a comma. The file command requests
-each entry in turn, terminated by a null filename when the directory listing
-is exhausted. */
+/**
+<li> <b>Dd</b> Get a directory listing d=dirname. Directory name is 8.3 string
+style. Gets all items in the directory and sends the type,size and name, each
+group preceded by a comma. The file command requests each entry in turn,
+terminated by a null filename when the directory listing is exhausted. */
             case 'D':
             {
                 if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_TIMEOUT))
@@ -737,12 +803,12 @@ is exhausted. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Return the next entry in the directory listing. If a directory name is sent,
-then return the first entry. If the name has a zero in the first position,
-return the next entry in the directory listing.
-Returns the type, size and name preceded by a comma for compatibility with
-the full directory listing request. If there are no further entries found in the
-directory, then an empty string is sent back. */
+/**
+<li> <b>d[d]</b> d is the d=directory name. Get the first (if d present) or next
+entry in the directory. If the name has a zero in the first position, return the
+next entry in the directory listing. Returns the type, size and name preceded by
+a comma for compatibility with the full directory listing request. If there are
+no further entries found in the directory, then an empty string is sent back. */
             case 'd':
             {
                 if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_TIMEOUT))
@@ -789,7 +855,8 @@ directory, then an empty string is sent back. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Register (mount) the SD card. */
+/**
+<li> <b>M</b> Register (mount or remount) the SD card. */
             case 'M':
             {
                 uint8_t fileStatus = FR_INT_ERR;
@@ -802,7 +869,8 @@ directory, then an empty string is sent back. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
-/* Send a status message containing: software switches
+/**
+<li> <b>s</b> Send a status message containing: software switches
 (configData.config.recording), names of open files. */
             case 's':
             {
@@ -829,8 +897,9 @@ directory, then an empty string is sent back. */
                 xSemaphoreGive(commsSendSemaphore);
                 break;
             }
-/* Delete a designated file. The file must not be open at the time.
-A status is returned to signal a directory refresh. */
+/**
+<li> <b>Xf</b> Delete a designated file f=filename. The file must not be open at
+the time. A status is returned to signal a directory refresh. */
             case 'X':
             {
                 uint8_t fileStatus = FR_INT_ERR;
@@ -843,6 +912,8 @@ A status is returned to signal a directory refresh. */
                 sendResponse("fE",(uint8_t)fileStatus);
                 break;
             }
+/**
+</ul> */
         }
     }
 }
@@ -909,10 +980,11 @@ void dataMessageSendLowPriority(char* ident, int32_t param1, int32_t param2)
 {
     if (configData.config.measurementSend)
     {
-/* If any characters are on the send queue, block on the commsEmptySemaphore
+/**
+If any characters are on the send queue, block on the commsEmptySemaphore
 which is released by the ISR after the last character has been sent. One
-message is then sent. The calling task cannot queue more than one message. */
-/* Hold indefinitely as the message must not be abandoned */
+message is then sent. The calling task cannot queue more than one message.
+Block indefinitely as the message must not be abandoned */
         while (uxQueueMessagesWaiting(commsSendQueue) > 0)
             xSemaphoreTake(commsEmptySemaphore,portMAX_DELAY);
         if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_DELAY)) return;
@@ -963,10 +1035,11 @@ void sendResponseLowPriority(char* ident, int32_t parameter)
 {
     if (configData.config.measurementSend)
     {
-/* If any characters are on the send queue, block on the commsEmptySemaphore
+/**
+If any characters are on the send queue, block on the commsEmptySemaphore
 which is released by the ISR after the last character has been sent. One
-message is then sent. The calling task cannot queue more than one message. */
-/* Hold indefinitely as the message must not be abandoned */
+message is then sent. The calling task cannot queue more than one message.
+Block indefinitely as the message must not be abandoned */
         while (uxQueueMessagesWaiting(commsSendQueue) > 0)
             xSemaphoreTake(commsEmptySemaphore,portMAX_DELAY);
         if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_DELAY)) return;
@@ -991,10 +1064,11 @@ until commsSendSemaphore is available.
 void sendDebugResponse(char* ident, int32_t parameter)
 {
     if ((ident[0] == 'D') && !configData.config.debugMessageSend) return;
-/* If any characters are on the send queue, block on the commsEmptySemaphore
+/**
+If any characters are on the send queue, block on the commsEmptySemaphore
 which is released by the ISR after the last character has been sent. One
-message is then sent. The calling task cannot queue more than one message. */
-/* Hold indefinitely as the message must not be abandoned */
+message is then sent. The calling task cannot queue more than one message.
+Block indefinitely as the message must not be abandoned */
     while (uxQueueMessagesWaiting(commsSendQueue) > 0)
         xSemaphoreTake(commsEmptySemaphore,portMAX_DELAY);
     if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_DELAY)) return;
@@ -1047,10 +1121,11 @@ void sendStringLowPriority(char* ident, char* string)
 {
     if (configData.config.measurementSend)
     {
-/* If any characters are on the send queue, block on the commsEmptySemaphore
+/**
+If any characters are on the send queue, block on the commsEmptySemaphore
 which is released by the ISR after the last character has been sent. One
-message is then sent. The calling task cannot queue more than one message. */
-/* Hold indefinitely as the message must not be abandoned */
+message is then sent. The calling task cannot queue more than one message.
+Block indefinitely as the message must not be abandoned */
         if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >=
             stringLength(ident)+stringLength(string)+3)
         {
@@ -1081,10 +1156,11 @@ This blocks indefinitely until the queue is empty of all messages.
 void sendDebugString(char* ident, char* string)
 {
     if ((ident[0] == 'D') && !configData.config.debugMessageSend) return;
-/* If any characters are on the send queue, block on the commsEmptySemaphore
+/**
+If any characters are on the send queue, block on the commsEmptySemaphore
 which is released by the ISR after the last character has been sent. One
-message is then sent. The calling task cannot queue more than one message. */
-/* Hold indefinitely as the message must not be abandoned */
+message is then sent. The calling task cannot queue more than one message.
+Block indefinitely as the message must not be abandoned */
     if ((uint16_t)uxQueueSpacesAvailable(commsSendQueue) >=
         stringLength(ident)+stringLength(string)+3)
     {
@@ -1220,4 +1296,6 @@ void lapseCommsCallback(xTimerHandle lapseCommsTimer)
     lapseCommsTimer = lapseCommsTimer;
     configData.config.enableSend = false;    
 }
+
+/**@}*/
 

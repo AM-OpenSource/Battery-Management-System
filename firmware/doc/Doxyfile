@@ -1,0 +1,23 @@
+# HTML Documentation for Battery Management System code level
+
+# 12 November 2016
+# (C) Ken Sarkies <ksarkies@internode.on.net>
+
+#---------------------------------------------------------------------------
+# Common Include File
+#---------------------------------------------------------------------------
+
+@INCLUDE = Doxyfile_common
+
+#---------------------------------------------------------------------------
+# Local settings
+#---------------------------------------------------------------------------
+
+WARN_LOGFILE           = doxygen.log
+
+INPUT                  = ../
+
+LAYOUT_FILE 	       = DoxygenLayout.xml
+
+ENABLE_PREPROCESSING   = YES
+

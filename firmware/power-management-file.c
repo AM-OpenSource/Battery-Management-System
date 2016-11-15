@@ -1,6 +1,6 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup File_file File Management
 
-Defines the file management for storage of historical data.
+@brief File Management for Storage of Historical Data.
 
 File system control is done by passing commands over a FreeRTOS queue interface
 using a semaphore to allow calling tasks to complete sending of a command. This
@@ -39,6 +39,8 @@ Initial 1 October 2013
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -85,7 +87,7 @@ static uint8_t filemap=0;           /* map of open file handles */
 static uint8_t writeFileHandle;
 static uint8_t readFileHandle;
 /*--------------------------------------------------------------------------*/
-/* @brief File Management Task
+/** @brief File Management Task
 
 This collects commands and data received from other tasks and interprets them
 to perform various file operations.
@@ -121,7 +123,7 @@ in bytes (which is the number of parameter bytes, if any, plus 2). */
 }
 
 /*--------------------------------------------------------------------------*/
-/* @brief File Initialization
+/** @brief File Initialization
 
 The FreeRTOS queue and semaphore are initialised. The file system work area is
 initialised.
@@ -451,7 +453,7 @@ Checks the filename and handle for the write and read files, if they are open. *
 }
 
 /*--------------------------------------------------------------------------*/
-/* @brief Find a file handle
+/** @brief Find a file handle
 
 The file handle map consists of bits set when a handle has been allocated.
 This function searches for a free handle.
@@ -475,7 +477,7 @@ static uint8_t findFileHandle(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/* @brief Delete a file handle
+/** @brief Delete a file handle
 
 The file handle map consists of bits set when a handle has been allocated.
 This function deletes a handle. Does nothing if file handle is not valid.
@@ -649,4 +651,6 @@ bool sendFileCommand(char command, uint8_t length, uint8_t *parameters)
     }
     return true;
 }
+
+/**@}*/
 

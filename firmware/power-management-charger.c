@@ -1,6 +1,6 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Charger_file Charger
 
-Battery Charging Task Pulse Algorithm
+@brief Battery Charging Task using Pulse Algorithm
 
 This task implements an algorithm to manage charging of a single battery.
 Battery current and terminal voltage are monitored constantly.
@@ -31,6 +31,7 @@ charged and only side reactions are occurring.
 One strategy control is provided to suppress the absorption phase to reduce EMI.
 
 Initial 2 October 2014
+Updated 15 November 2016
 */
 
 /*
@@ -51,6 +52,8 @@ Initial 2 October 2014
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -98,10 +101,10 @@ static uint32_t absorptionPhaseTime[NUM_BATS];   /* time in absorption */
 static int16_t absorptionPhaseCurrent[NUM_BATS];
 
 /*--------------------------------------------------------------------------*/
-/* @brief Charging Task
+/** @brief Charging Task
 
-This task runs over long times, implementing the charging algorithm on a
-battery or batteries that have been designated for charging.
+This is a long-running task, implementing the charging algorithm on a
+battery that has been designated for charging.
 */
 
 void prvChargerTask(void *pvParameters)
@@ -120,7 +123,9 @@ void prvChargerTask(void *pvParameters)
 /* Reset watchdog counter */
         chargerWatchdogCount = 0;
 
-/* Compute the average current and voltage */
+/**
+<ul>
+<li> Compute the average current and voltage */
         uint8_t i;
         for (i=0; i<NUM_BATS; i++)
         {
@@ -129,12 +134,14 @@ void prvChargerTask(void *pvParameters)
 
         for (i=0; i < NUM_BATS; i++)
         {
-/* If a battery is in a rest phase, increment its off-time counter,
+/**
+<li> If a battery is in rest phase, increment its off-time counter,
 or if in bulk phase, its on-time counter. */
             if (getBatteryChargingPhase(i) == restC) restPhaseTime[i]++;
             else if (getBatteryChargingPhase(i) == bulkC) onTime[i]++;
 
-/* Change to bulk phase if a battery is in rest phase and its off time exceeds
+/**
+<li> Change to bulk phase if a battery is in rest phase and its off time exceeds
 the minimum. Charging will not start until the charger is allocated. */
             if ((getBatteryChargingPhase(i) == restC) &&
                 (restPhaseTime[i] > minimumRestTime))
@@ -143,40 +150,53 @@ the minimum. Charging will not start until the charger is allocated. */
             }
         }
 
-/* Re-initialize the algorithm if the panel voltage has fallen below 10V, which
-would almost certainly indicate night time. This will prevent the algorithm from
-carrying over unfinished charging states from the previous day. */
+/**
+<li> Re-initialize the algorithm if the panel voltage has fallen below 10V,
+which would almost certainly indicate night time. This will prevent the
+algorithm from carrying over unfinished charging states from the previous
+day. */
         if (getPanelVoltage(0) < 10*256) resetChargeAlgorithm();
 
-/* Get battery under charge from the panel switch settings. This is necessary
-because the battery may have been set manually rather than via autotracking
-in the monitor task. */
+/**
+<li> Get the battery under charge from the panel switch settings. This is
+necessary because the battery may have been set manually rather than via
+autotracking in the monitor task. */
         uint8_t battery = getPanelSwitchSetting();
 
-/***** PULSE Algorithm */
-/* battery set to zero means that the charger is unallocated or is not producing
-any output. The former should only happen when the charger is manually disabled.
-The autotracker should normally always allocate a battery under charge. */
+/**
+<li> <b>PULSE Algorithm</b>.
+<ol>
+<li> Check that the battery under charge has its ID set to nonzero. Otherwise
+the charger is unallocated or is not producing any output. The former should
+only happen when the charger is manually disabled. The autotracker should
+normally always allocate a battery under charge. */
         if (battery > 0)
         {
 
-/* BULK Phase Management */
+/**
+<li> BULK Phase Management: */
             uint8_t index = battery-1;
             if (getBatteryChargingPhase(index) == bulkC)
             {
-/* Set duty cycle full on for bulk charging */
+/**
+<ul>
+<li> Set the duty cycle to maximum for bulk charging */
                 dutyCycle[index] = 100*256;
 
-/* Keep a record of the current so that it is available when first entering
+/**
+<li> Keep a record of the current so that it is available when first entering
 absorption phase, to test if the current is falling. */
                 absorptionPhaseTime[index] = 0;
                 absorptionPhaseCurrent[index] = getCurrentAv(index);
 
-/* Manage the change from bulk phase at the gassing limit. */
+/**
+<li> Manage the change from bulk phase at the gassing limit. */
                 if (getVoltageAv(index) > voltageLimit(getAbsorptionVoltage(index)))
                 {
-/* If no other battery is in bulk phase, change this battery to absorption
-phase, otherwise change to rest phase. */
+/**
+<ul>
+<li> If no other battery is in bulk phase, change the battery under charge to
+absorption phase, otherwise change to rest phase. */
                     if ((configData.config.chargerStrategy & 1) > 0)
                         setBatteryChargingPhase(index,restC);
                     else
@@ -189,29 +209,37 @@ phase, otherwise change to rest phase. */
                             break;
                         }
                     }
-/* On entering absorption phase, drop duty cycle by 50% to reduce overshoot
-problems. */
+/**
+<li> On entering absorption phase, drop the duty cycle by 50% to reduce
+overshoot problems. */
                     if (getBatteryChargingPhase(index) == absorptionC)
                         dutyCycle[index] /= 2;
-/* Now that the cycle is finished, reset times to start next cycle. */
+/**
+<li> Now that the cycle is finished, reset times to start next cycle. */
                     restPhaseTime[index] = 0;
                     onTime[index] = 0;
                 }
             }
+/**
+</ul>
+</ul> */
 
-/* ABSORPTION Phase Management */
-/* If the battery is in the absorption phase, manage the constant voltage
-charging */
+/**
+<li> ABSORPTION Phase Management: If the battery is in the absorption phase,
+manage the constant voltage charging */
             else if (getBatteryChargingPhase(index) == absorptionC)
             {
-/* If suppression is in place, just pass to rest phase */
+/**
+<ul>
+<li> If suppression is in place, just pass to rest phase */
                 if ((configData.config.chargerStrategy & 1) > 0)
                     setBatteryChargingPhase(index,restC);
                 else
                 {
                     restPhaseTime[index] = 0;
                     onTime[index] = 0;
-/* At the end of the absorption period, if another battery has changed to bulk
+/**
+<li> At the end of the absorption period, if another battery has changed to bulk
 phase, pass to rest phase to allow some other battery to have its turn. This
 will take effect on the next cycle of the monitor task. */
                     if (absorptionPhaseTime[index] > configData.config.absorptionTime)
@@ -226,8 +254,10 @@ will take effect on the next cycle of the monitor task. */
                             }
                         }
                     }
-/* Check if current is above the last recorded value slightly reduced, to detect
-if the current has stopped falling. Change to float phase if time exceeded. */
+/**
+<li> Check if current is above the last recorded value slightly reduced, to
+detect if the current has stopped falling. Change to float phase if time
+exceeded. */
                     if ((240*absorptionPhaseCurrent[index])/256 > getCurrentAv(index))
                     {
                         absorptionPhaseTime[index]++;
@@ -238,11 +268,13 @@ if the current has stopped falling. Change to float phase if time exceeded. */
                             absorptionPhaseCurrent[index] = 0;
                         }
                     }
-/* If current is dropping, reset the last recorded current */
+/**
+<li> If current is dropping, reset the last recorded current */
                     else
                         absorptionPhaseCurrent[index] = 0;
 
-/* Manage the change to float phase when the current drops below the float
+/**
+<li> Manage the change to float phase when the current drops below the float
 threshold. This is done on the averaged current as rapid response is not
 essential. (Note: measured currents are negative while charging). Ignore samples
 where the source voltage drops causing the battery voltage and current to fall.
@@ -258,13 +290,15 @@ by the resetBattery function. */
                         resetBatterySoC(battery-1);
                     }
 
-/* Manage the absorption phase voltage limit. */
+/**
+<li> Manage the absorption phase voltage limit. */
                     adaptDutyCycle(getVoltageAv(index),getAbsorptionVoltage(index),
                                    &dutyCycle[index]);
                 }
             }
 
-/* Overcurrent protection:
+/**
+<li> Overcurrent protection:
 Compute the peak current from duty cycle (assumes current goes from 0 to a peak)
 then if the peak is greater than the battery's current limit, reduce the
 maximum duty cycle. Limit the duty cycle to this.
@@ -276,23 +310,32 @@ This is done on the directly measured current for rapid response. */
             else dutyCycleMax = 100*256;
             if (dutyCycle[index] > dutyCycleMax) dutyCycle[index] = dutyCycleMax;
 
-/* Set the duty cycle. */
-/* Never let duty cycle go too near zero else it will not recover. Set to a
+/**
+<li> Set the duty cycle.
+Never let the duty cycle go too close to zero else it will not recover. Set to a
 value that will allow it to grow again if needed (round-off error problem). */
             if (dutyCycle[index] < configData.config.minDutyCycle)
                 dutyCycle[index] = configData.config.minDutyCycle;
 
             uint16_t dutyCycleActual = dutyCycle[index];
 
-/* If the panel voltage is too low, turn off charging. */
+/**
+</ol>
+</ul>
+<li> <b>Additional Decisions:</b>
+<ul>
+<li> If the panel voltage is too low, turn off charging. */
             if (getPanelVoltage(0) < 10*256)
                 dutyCycleActual = 0;
 
-/* If in rest or float phase, turn off charging as a precaution. */
+/**
+<li> If in rest or float phase, turn off charging as a precaution. */
             if ((getBatteryChargingPhase(index) == restC) ||
                 (getBatteryChargingPhase(index) == floatC))
                 dutyCycleActual = 0;
 
+/**
+</ul> */
 /* Set the actual duty cycle. */
             pwmSetDutyCycle(dutyCycleActual);
         }
@@ -326,10 +369,9 @@ void initGlobals(void)
 /** @brief Reset Battery Parameters when Algorithm changed
 
 This should be called only when the algorithm is changed to a different one.
+At present this only occurs when the charger is disabled at night.
 The charger parameters are reset and the battery charge state is modified to
 suit the algorithm.
-
-param[in] chargeAlgorithm. The new charge algorithm.
 */
 
 void resetChargeAlgorithm()
@@ -339,7 +381,8 @@ void resetChargeAlgorithm()
     {
         restPhaseTime[i] = 0;
         onTime[i] = 0;
-/* Set battery state to rest if left in absorption pahse. */
+/**
+If the battery state was left in the absorption phase, set it to rest phase. */
         if (getBatteryChargingPhase(i) == absorptionC)
             setBatteryChargingPhase(i,restC);
     }
@@ -349,6 +392,7 @@ void resetChargeAlgorithm()
 /** @brief Access the Averaged Battery Terminal Voltage
 
 @param[in] battery: 0..NUM_BATS-1
+@result int16_t voltageAv
 */
 
 int16_t getVoltageAv(int index)
@@ -360,6 +404,7 @@ int16_t getVoltageAv(int index)
 /** @brief Access the Averaged Battery Terminal Current
 
 @param[in] index: 0..NUM_BATS-1
+@result int16_t currentAv
 */
 
 int16_t getCurrentAv(int index)
@@ -415,6 +460,9 @@ void checkChargerWatchdog(void)
 Based on an heuristic measure from battery data, which is about 5mV per cell
 per degree C.
 Recommendation is to reduce by 3mV per cell per degree C above 25C.
+
+@param[in] uint16_t limitV
+@result int16_t corrected voltage limit
 */
 
 int16_t voltageLimit(uint16_t limitV)
@@ -483,4 +531,7 @@ void calculateAverageMeasures(uint8_t i)
     currentAv[i] = currentAv[i] +
                 ((getAlphaC()*(current - currentAv[i]))>>8);
 }
+
+/*--------------------------------------------------------------------------*/
+/**@}*/
 

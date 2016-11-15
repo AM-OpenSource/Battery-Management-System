@@ -1,6 +1,8 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Time_file Time/Date
 
-Defines the time and date counter to carry the real time count in seconds for
+@brief Time and Date Counter
+
+This counter carries the real time count in seconds for
 time stamping of records. Access functions are provided for setting from a UTC
 string and reading to a string.
 
@@ -26,6 +28,8 @@ Initial 25 November 2013
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**@{*/
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <time.h>
@@ -37,7 +41,7 @@ Initial 25 November 2013
 #include "power-management-comms.h"
 
 /*--------------------------------------------------------------------------*/
-/* @brief Return a string containing the time and date
+/** @brief Return a string containing the time and date
 
 Convert the global time to an ISO 8601 string.
 
@@ -74,7 +78,7 @@ void putTimeToString(char* timeString)
 }
 
 /*--------------------------------------------------------------------------*/
-/* @brief Set the time variable from an ISO 8601 formatted date/time
+/** @brief Set the time variable from an ISO 8601 formatted date/time
 
 @param[in] timeString: pointer to string with formatted date.
 */
@@ -102,4 +106,6 @@ void setTimeFromString(char* timeString)
 
     setTimeCounter((uint32_t)mktime(&newTime));
 }
+
+/**@}*/
 

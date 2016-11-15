@@ -1,6 +1,8 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Objdic_file Object Dictionary
 
-This file defines the CANopen object dictionary variables made available to an
+@brief Definition of CANopen Object Dictionary Variables
+
+These are made available to an
 external PC and to other processing modules which may be CANopen devices or
 tasks running on the same microcontroller.
 
@@ -25,6 +27,8 @@ Note these definitions cannot be placed in the header file.
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -396,4 +400,5 @@ uint16_t getControls(void)
     return controls;
 }
 
+/**@}*/
 

@@ -1,7 +1,7 @@
 Battery Management System Firmware
 ----------------------------------
 
-Version: 1.00
+Version: 1.0.0
 
 The firmware is written for an STM32F103 ARM Cortex M3 microcontroller and uses
 specific hardware published here.

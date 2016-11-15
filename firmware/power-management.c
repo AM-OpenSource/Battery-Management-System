@@ -1,8 +1,9 @@
 /**
-@mainpage STM32F1 Power Management for Solar Power
+@mainpage Battery Power Management for Solar Power System
 @version 1.0.0
 @author Ken Sarkies (www.jiggerjuice.info)
-@date 13 July 2013
+@date 12 November 2016
+
 @brief Management of solar battery charger and battery state monitor.
 
 The power management system provides interface current, voltage (analogue),
@@ -22,7 +23,7 @@ are idle for a significant period of time.
 FreeRTOS provides the real time operating system.
 
 It was intended that CANopen provide the smart transducer communications through
-CanFestival, but this has not been implemented.
+CanFestival, but this has not been implemented fully.
 
 The board used is the ET-STM32F103 (RBT6).
 (On this board, ADC1 channels 2 and 3 (PA2, PA3) are shared with USART2 and two
@@ -33,10 +34,13 @@ Hardware using the ET-ARM-STAMP (RET6) has been completed and is permanently in
 use.
 
 Initial 13 July 2013
+
 FreeRTOS 9 August 2013
 
 10/11/2016: FreeRTOS v 9.0.0
+
 10/11/2016: libopencm3 commit 011b5c615ad398bd14bbc58e43d9b3335cfaa1b8
+
 10/11/2016: ChaN FatFS R0.12b
 */
 
@@ -80,6 +84,9 @@ FreeRTOS 9 August 2013
 #include "power-management.h"
 
 /*--------------------------------------------------------------------------*/
+/* @brief Main Program
+
+The hardware and communications are ihitialised then all tasks are launched. */
 
 int main(void)
 {

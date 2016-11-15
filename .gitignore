@@ -20,6 +20,7 @@
 *.tag
 *.lss
 *.csv
+firmware/doc/html/
 auxiliary/
 moc_*
 ui_*

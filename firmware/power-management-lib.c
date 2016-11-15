@@ -1,4 +1,6 @@
-/* STM32F1 Power Management Library Functions
+/** @defgroup Lib_file Library
+
+@brief Library Functions
 
 Initial 30 November 2013
 */
@@ -21,6 +23,8 @@ Initial 30 November 2013
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -152,4 +156,5 @@ uint16_t stringEqual(char* string1,char* string2)
     return 1;
 }
 
+/**@}*/
 

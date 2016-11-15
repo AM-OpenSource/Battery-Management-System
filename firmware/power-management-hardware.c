@@ -1,6 +1,6 @@
-/* STM32F1 Power Management for Solar Power
+/** @defgroup Hardware_file Hardware
 
-Hardware Setup
+@brief Hardware Setup
 
 This configures all peripherals for the program and provides some
 convenience functions for accessing the hardware.
@@ -35,6 +35,8 @@ Initial 29 September 2013
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**@{*/
 
 /* Set this define if the SWD debug is to be used. It will disable some ports
 so must be commented out for normal use. */
@@ -837,7 +839,7 @@ void pend_sv_handler(void)
 }
 
 /*-----------------------------------------------------------*/
-/** @Brief Systick Interrupt Handler
+/** @brief Systick Interrupt Handler
 
 This provides a link to the FreeRTOS systick interrupt handler.
 
@@ -869,4 +871,6 @@ void sys_tick_handler(void)
     }
     xPortSysTickHandler();
 }
+
+/**@}*/
 
