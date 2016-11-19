@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>682</width>
-    <height>570</height>
+    <height>605</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,7 @@
      <x>10</x>
      <y>50</y>
      <width>651</width>
-     <height>471</height>
+     <height>501</height>
     </rect>
    </property>
    <property name="toolTip">
@@ -891,8 +891,8 @@
     <widget class="QPushButton" name="calibrateButton">
      <property name="geometry">
       <rect>
-       <x>254</x>
-       <y>195</y>
+       <x>251</x>
+       <y>240</y>
        <width>91</width>
        <height>27</height>
       </rect>
@@ -904,10 +904,10 @@
     <widget class="QLabel" name="socLabel">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>50</y>
+       <x>51</x>
+       <y>45</y>
        <width>521</width>
-       <height>136</height>
+       <height>196</height>
       </rect>
      </property>
      <property name="text">
@@ -953,8 +953,8 @@
     <widget class="QLabel" name="qcLabel">
      <property name="geometry">
       <rect>
-       <x>234</x>
-       <y>255</y>
+       <x>230</x>
+       <y>295</y>
        <width>131</width>
        <height>17</height>
       </rect>
@@ -966,8 +966,8 @@
     <widget class="QLabel" name="quiescentCurrent">
      <property name="geometry">
       <rect>
-       <x>244</x>
-       <y>275</y>
+       <x>240</x>
+       <y>315</y>
        <width>111</width>
        <height>31</height>
       </rect>
@@ -990,8 +990,8 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>244</x>
-       <y>225</y>
+       <x>221</x>
+       <y>270</y>
        <width>151</width>
        <height>23</height>
       </rect>
@@ -1006,8 +1006,8 @@
     <widget class="QPushButton" name="forceZeroCurrent1">
      <property name="geometry">
       <rect>
-       <x>174</x>
-       <y>355</y>
+       <x>170</x>
+       <y>395</y>
        <width>31</width>
        <height>21</height>
       </rect>
@@ -1022,8 +1022,8 @@
     <widget class="QPushButton" name="forceZeroCurrent3">
      <property name="geometry">
       <rect>
-       <x>394</x>
-       <y>355</y>
+       <x>390</x>
+       <y>395</y>
        <width>31</width>
        <height>21</height>
       </rect>
@@ -1038,8 +1038,8 @@
     <widget class="QPushButton" name="forceZeroCurrent2">
      <property name="geometry">
       <rect>
-       <x>282</x>
-       <y>355</y>
+       <x>278</x>
+       <y>395</y>
        <width>31</width>
        <height>21</height>
       </rect>
@@ -1054,8 +1054,8 @@
     <widget class="QLabel" name="fcLabel">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>315</y>
+       <x>236</x>
+       <y>355</y>
        <width>131</width>
        <height>17</height>
       </rect>
@@ -1067,8 +1067,8 @@
     <widget class="QLabel" name="fcBatt1Label">
      <property name="geometry">
       <rect>
-       <x>164</x>
-       <y>335</y>
+       <x>160</x>
+       <y>375</y>
        <width>69</width>
        <height>17</height>
       </rect>
@@ -1080,8 +1080,8 @@
     <widget class="QLabel" name="fcBatt2Label">
      <property name="geometry">
       <rect>
-       <x>272</x>
-       <y>335</y>
+       <x>268</x>
+       <y>375</y>
        <width>69</width>
        <height>17</height>
       </rect>
@@ -1093,8 +1093,8 @@
     <widget class="QLabel" name="fcBatt3Label">
      <property name="geometry">
       <rect>
-       <x>382</x>
-       <y>335</y>
+       <x>378</x>
+       <y>375</y>
        <width>69</width>
        <height>17</height>
       </rect>
@@ -1106,10 +1106,10 @@
     <widget class="QLabel" name="fcDescrLabel">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>370</y>
-       <width>327</width>
-       <height>71</height>
+       <x>85</x>
+       <y>420</y>
+       <width>441</width>
+       <height>46</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -1868,8 +1868,8 @@
   <widget class="QPushButton" name="closeButton">
    <property name="geometry">
     <rect>
-     <x>562</x>
-     <y>532</y>
+     <x>560</x>
+     <y>565</y>
      <width>91</width>
      <height>27</height>
     </rect>
@@ -1878,6 +1878,22 @@
     <string>Close</string>
    </property>
   </widget>
+  <zorder>title</zorder>
+  <zorder>tabWidget</zorder>
+  <zorder>errorLabel</zorder>
+  <zorder>closeButton</zorder>
+  <zorder>fcDescrLabel</zorder>
+  <zorder>fcBatt2Label</zorder>
+  <zorder>calibrateProgressBar</zorder>
+  <zorder>forceZeroCurrent3</zorder>
+  <zorder>qcLabel</zorder>
+  <zorder>fcLabel</zorder>
+  <zorder>fcBatt1Label</zorder>
+  <zorder>forceZeroCurrent1</zorder>
+  <zorder>forceZeroCurrent2</zorder>
+  <zorder>calibrateButton</zorder>
+  <zorder>quiescentCurrent</zorder>
+  <zorder>fcBatt3Label</zorder>
  </widget>
  <resources/>
  <connections/>
