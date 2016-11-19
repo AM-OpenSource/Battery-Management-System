@@ -85,10 +85,12 @@ This measures the interface currents and voltages and passes them to other
 tasks for processing and storage.
 
 Certain other actions are needed at the fastest rate:
-- Averaging of measurements;
-- Detection of sudden current changes to find ohmic resistance;
-- Estimation of battery parameters;
-- Implementation of Coulomb Counting for SoC.
+<ul>
+<li> Averaging of measurements;
+<li> Detection of sudden current changes to find ohmic resistance;
+<li> Estimation of battery parameters;
+<li> Implementation of Coulomb Counting for SoC.
+</ul>
 
 A/D measurements are performed in a single conversion and stored via DMA.
 */
@@ -150,7 +152,6 @@ temperature */
             av[12] += adcValue(12);
         }
 
-/* Process the averaged results. */
 /**
 <li> Compute averages from the burst; scale and offset to the real quantities;
 and reset the averages for the next cycle. */
@@ -195,7 +196,9 @@ averaged are linear unbiassed estimators. */
 <li> Apply a weighted IIR filter to estimate the average voltage and current.
 The forgetting factor getAlphaR() (<1) is multiplied by 256 to make integer,
 therefore the correction factors need to be divided back by 256.
-Seed the filter with the most recent measurements (rather than zero) */
+Seed the filter with the most recent measurements (rather than zero)
+</ol>
+*/
                 if (voltageStepAv[i] == 0) voltageStepAv[i] = voltageStep;
                 voltageStepAv[i] = voltageStepAv[i] +
                          ((getAlphaR()*(voltageStep - voltageStepAv[i])) >> 8);
@@ -210,7 +213,6 @@ Seed the filter with the most recent measurements (rather than zero) */
         }
     }
 }
-
 /*--------------------------------------------------------------------------*/
 /** @brief Initialise Global Variables
 */

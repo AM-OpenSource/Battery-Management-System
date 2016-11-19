@@ -222,16 +222,14 @@ overshoot problems. */
             }
 /**
 </ul>
-</ul> */
-
-/**
+</ul>
 <li> ABSORPTION Phase Management: If the battery is in the absorption phase,
-manage the constant voltage charging */
+manage the constant voltage charging. */
             else if (getBatteryChargingPhase(index) == absorptionC)
             {
 /**
 <ul>
-<li> If suppression is in place, just pass to rest phase */
+<li> If suppression is in place, just pass to rest phase. */
                 if ((configData.config.chargerStrategy & 1) > 0)
                     setBatteryChargingPhase(index,restC);
                 else
@@ -391,8 +389,8 @@ If the battery state was left in the absorption phase, set it to rest phase. */
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Averaged Battery Terminal Voltage
 
-@param[in] battery: 0..NUM_BATS-1
-@result int16_t voltageAv
+@param[in] index: int 0..NUM_BATS-1 battery number
+@result int16_t voltage average
 */
 
 int16_t getVoltageAv(int index)
@@ -403,8 +401,8 @@ int16_t getVoltageAv(int index)
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Averaged Battery Terminal Current
 
-@param[in] index: 0..NUM_BATS-1
-@result int16_t currentAv
+@param[in] index: int 0..NUM_BATS-1 battery number
+@result int16_t current average
 */
 
 int16_t getCurrentAv(int index)
@@ -415,8 +413,8 @@ int16_t getCurrentAv(int index)
 /*--------------------------------------------------------------------------*/
 /** @brief Return the Battery Charging Phase Variable
 
-@param[in] index: 0..NUM_BATS-1
-@result battery_Ch_States chargePhase
+@param[in] index: int 0..NUM_BATS-1 battery number
+@result battery_Ch_States charge phase
 */
 
 battery_Ch_States getBatteryChargingPhase(int index)
@@ -427,8 +425,8 @@ battery_Ch_States getBatteryChargingPhase(int index)
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Battery Charging Phase Variable
 
-@param[in] index: 0..NUM_BATS-1
-@param[in] battery_Ch_States chargePhase
+@param[in] index: int 0..NUM_BATS-1 battery number
+@param[in] chargePhase: battery_Ch_States charge phase
 */
 
 void setBatteryChargingPhase(int index, battery_Ch_States chargePhase)
@@ -461,7 +459,7 @@ Based on an heuristic measure from battery data, which is about 5mV per cell
 per degree C.
 Recommendation is to reduce by 3mV per cell per degree C above 25C.
 
-@param[in] uint16_t limitV
+@param[in] limitV: uint16_t Voltage limit times 256.
 @result int16_t corrected voltage limit
 */
 
@@ -480,9 +478,9 @@ int16_t voltageLimit(uint16_t limitV)
 Adapt the PWM Duty Cycle to bring the voltage to its limit point.
 The limit voltage is adjusted according to temperature.
 
-@param[in] int16_t voltage: The measured voltage.
-@param[in] int16_t vLimit: The limit voltage target.
-@param[in] int16_t *dutyCycle: The current duty cycle.
+@param[in] voltage: int16_t The measured voltage.
+@param[in] vLimit: int16_t The limit voltage target.
+@param[in] dutyCycle: int16_t* The current duty cycle.
 */
 
 void adaptDutyCycle(int16_t voltage, int16_t vLimit, uint16_t* dutyCycle)
@@ -514,7 +512,7 @@ Compute averaged voltage and current for a battery to manage phase switchover.
 Use first order exponential filters, separate coefficients. Missing batteries
 will be ignored.
 
-@param[in] uint8_t i: index to battery table.
+@param[in] i: uint8_t index to battery table.
 */
 
 void calculateAverageMeasures(uint8_t i)

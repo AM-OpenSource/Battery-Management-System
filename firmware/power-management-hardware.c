@@ -118,8 +118,8 @@ void prvSetupHardware(void)
 
 Note the channel must be less than the number of channels in the A/D converter.
 
-@param[in] uint8_t channel: A/D channel to be retrieved from the DMA buffer.
-@returns uint32_t : last value measured by the A/D converter.
+@param[in] channel: uint8_t A/D channel to be retrieved from the DMA buffer.
+@returns uint32_t last value measured by the A/D converter.
 */
 
 uint32_t adcValue(uint8_t channel)
@@ -134,7 +134,7 @@ uint32_t adcValue(uint8_t channel)
 This must be retrieved from the ISR as the hardware EOC doesn't always change
 at the end of a conversion (when multiple conversions take place).
 
-@returns uint8_t: boolean true if the flag was set; false otherwise.
+@returns uint8_t boolean true if the flag was set; false otherwise.
 */
 
 uint8_t adcEOC(void)
@@ -156,7 +156,7 @@ undervoltage for each.
 
 Each bit is zero if the indicator is on, 1 if it is off.
 
-@returns uint16_t
+@returns uint16_t binary set of indicator settings.
 */
 
 uint16_t getIndicators(void)
@@ -185,8 +185,8 @@ set either to the battery specified, or is disconnected from all batteries.
 
 This function provides a common interface if different hardware is used.
 
-@parameter[in] uint8_t battery: (1-3, 0 = none)
-@parameter[in] uint8_t setting: load (0-1), panel 2.
+@param[in] battery: uint8_t (1-3, 0 = none)
+@param[in] setting: uint8_t load (0-1), panel 2.
 */
 
 void setSwitch(uint8_t battery, uint8_t setting)
@@ -213,7 +213,7 @@ settings go into the switch control port, preserving the lower bits. */
 Each two-bit field represents load 1 bits 0-1, load 2 bits 2-3 panel bits 4-5,
 and the setting is the battery (1-3) to be connected. Battery 0 = none connected.
 
-@returns uint16_t: the switch settings from the relevant port.
+@returns uint8_t: the switch settings from the relevant port.
 */
 
 uint8_t getSwitchControlBits(void)
@@ -224,7 +224,7 @@ uint8_t getSwitchControlBits(void)
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Interface Reset Line
 
-@param[in] uint8_t interface: interface 0-5, being batteries 1-3, loads 1-2, module.
+@param[in] interface: uint32_t interface 0-5, being batteries 1-3, loads 1-2, module.
 */
 
 void overCurrentReset(uint32_t interface)
@@ -264,7 +264,7 @@ void overCurrentReset(uint32_t interface)
 /*--------------------------------------------------------------------------*/
 /** @brief Release the Interface Reset Line
 
-@param[in] uint8_t interface: interface 0-5, being batteries 1-3, loads 1-2, module.
+@param[in] interface: uint32_t interface 0-5, being batteries 1-3, loads 1-2, module.
 */
 
 void overCurrentRelease(uint32_t interface)
@@ -310,7 +310,7 @@ and the setting is the battery (1-3) to be connected. Battery 0 = none connected
 This can be used as a raw switch setting call but is not recommended for normal
 use.
 
-@param[in] uint16_t settings: the switch settings from the relevant port.
+@param[in] settings: uint8_t the switch settings from the relevant port.
 */
 
 void setSwitchControlBits(uint8_t settings)
@@ -324,7 +324,7 @@ void setSwitchControlBits(uint8_t settings)
 /*--------------------------------------------------------------------------*/
 /** @brief PWM Timer set Duty Cycle
 
-@parameter[in] uint8_t dutyCycle: Duty cycle in percentage.
+@param[in] dutyCycle: uint16_t Duty cycle in percentage.
 */
 
 void pwmSetDutyCycle(uint16_t dutyCycle)
@@ -337,7 +337,7 @@ void pwmSetDutyCycle(uint16_t dutyCycle)
 /*--------------------------------------------------------------------------*/
 /** @brief Enable/Disable USART Interrupt
 
-@parameter[in] uint8_t enable: true to enable the interrupt, false to disable.
+@param[in] enable: uint8_t true to enable the interrupt, false to disable.
 */
 
 void commsEnableTxInterrupt(uint8_t enable)
@@ -619,9 +619,9 @@ static void systickSetup()
 
 Adapted from code by Damian Miller.
 
-@param[in] uint32_t *flashBlock: address of Flash page start
-@param[in] uint32_t *dataBlock: pointer to data block to write
-@param[in] uint16_t size: length of data block
+@param[in] flashBlock: uint32_t* address of Flash page start
+@param[in] dataBlock: uint32_t* pointer to data block to write
+@param[in] size: uint16_t length of data block
 */
 
 void flashReadData(uint32_t *flashBlock, uint8_t *dataBlock, uint16_t size)
@@ -641,14 +641,14 @@ void flashReadData(uint32_t *flashBlock, uint8_t *dataBlock, uint16_t size)
 
 Adapted from code by Damian Miller.
 
-@param[in] uint32_t *flashBlock: address of Flash page start
-@param[in] uint32_t *dataBlock: pointer to data block to write
-@param[in] uint16_t size: length of data block
+@param[in] flashBlock: uint32_t* address of Flash page start
+@param[in] dataBlock: uint32_t* pointer to data block to write
+@param[in] size: uint16_t length of data block
 @returns uint32_t result code: 0 success, bit 0 address out of range,
 bit 2: programming error, bit 4: write protect error, bit 7 compare fail.
 */
 
-uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *data, uint16_t size)
+uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *dataBlock, uint16_t size)
 {
     uint16_t n;
 
@@ -677,13 +677,13 @@ uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *data, uint16_t size)
     for(n=0; n<size; n += 4)
     {
         /*programming word data*/
-        flash_program_word(flashAddress+n, *((uint32_t*)(data + n)));
+        flash_program_word(flashAddress+n, *((uint32_t*)(dataBlock + n)));
         flashStatus = flash_get_status_flags();
         if(flashStatus != FLASH_SR_EOP)
             return flashStatus;
 
         /*verify if correct data is programmed*/
-        if(*((uint32_t*)(flashAddress+n)) != *((uint32_t*)(data + n)))
+        if(*((uint32_t*)(flashAddress+n)) != *((uint32_t*)(dataBlock + n)))
             return 0x80;
     }
 
@@ -693,7 +693,7 @@ uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *data, uint16_t size)
 /*--------------------------------------------------------------------------*/
 /** @brief Read the Time
 
-@returns uint32_t. Time value.
+@returns uint32_t Time value.
 */
 
 uint32_t getTimeCounter()
@@ -708,7 +708,7 @@ uint32_t getTimeCounter()
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Time
 
-@param[in] time uint32_t. Time value to set.
+@param[in] time: uint32_t Time value to set.
 */
 
 void setTimeCounter(uint32_t time)

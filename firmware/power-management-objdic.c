@@ -110,7 +110,7 @@ page boundary. If this is not done, a page erase may destroy valid data or code.
 The current datablock is written to flash with the first entry set to a value
 that indicates whether the block is a valid programmed configuration block.
 
-@returns result code. 0 success, 1 fail.
+@returns uint32_t result code. 0 success, 1 fail.
 */
 
 uint32_t writeConfigBlock(void)
@@ -125,7 +125,7 @@ uint32_t writeConfigBlock(void)
 
 The voltage parameters are set for recommended values at 25C.
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
 */
 
 void setBatteryChargeParameters(int battery)
@@ -150,9 +150,10 @@ void setBatteryChargeParameters(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Battery Type
+/** @brief Get the Battery Type
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns battery_Type Battery Type
 */
 
 battery_Type getBatteryType(int battery)
@@ -161,9 +162,10 @@ battery_Type getBatteryType(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Battery Capacity
+/** @brief Get the Battery Capacity
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns int16_t Battery Capacity
 */
 
 int16_t getBatteryCapacity(int battery)
@@ -172,9 +174,10 @@ int16_t getBatteryCapacity(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Battery Bulk Current Limit
+/** @brief Get the Battery Bulk Current Limit
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns int16_t Battery Bulk Current Limit
 */
 
 int16_t getBulkCurrentLimit(int battery)
@@ -184,9 +187,10 @@ int16_t getBulkCurrentLimit(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Battery Float Current Cutoff
+/** @brief Get the Battery Float Current Cutoff
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns int16_t Battery Float Current Cutoff
 */
 
 int16_t getFloatStageCurrent(int battery)
@@ -196,9 +200,10 @@ int16_t getFloatStageCurrent(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Absorption Phase Voltage Limit
+/** @brief Get the Absorption Phase Voltage Limit
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns int16_t Absorption Phase Voltage Limit
 */
 
 int16_t getAbsorptionVoltage(int battery)
@@ -206,9 +211,10 @@ int16_t getAbsorptionVoltage(int battery)
     return configData.config.absorptionVoltage[battery];
 }
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Float Phase Voltage Limit
+/** @brief Get the Float Phase Voltage Limit
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@returns int16_t Float Phase Voltage Limit
 */
 
 int16_t getFloatVoltage(int battery)
@@ -217,8 +223,9 @@ int16_t getFloatVoltage(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Forgetting factor for Charger Voltage Smoothing
+/** @brief Get the Forgetting factor for Charger Voltage Smoothing
 
+@returns int16_t Forgetting factor
 */
 
 int16_t getAlphaV(void)
@@ -227,8 +234,9 @@ int16_t getAlphaV(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Forgetting factor for Charger Current Smoothing
+/** @brief Get the Forgetting factor for Charger Current Smoothing
 
+@returns int16_t Forgetting factor
 */
 
 int16_t getAlphaC(void)
@@ -237,8 +245,9 @@ int16_t getAlphaC(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Forgetting factor for Resistance Estimator Smoothing
+/** @brief Get the Forgetting factor for Resistance Estimator Smoothing
 
+@returns int16_t Forgetting factor
 */
 
 int16_t getAlphaR(void)
@@ -247,9 +256,10 @@ int16_t getAlphaR(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Current Offset for A/D measurements
+/** @brief Get the Current Offset for A/D measurements
 
-@parameter uint8_t interface: the interface 0...NUM_IFS.
+@param interface: uint8_t the interface 0...NUM_IFS.
+@returns int16_t Current Offset
 */
 
 int16_t getCurrentOffset(uint8_t interface)
@@ -260,8 +270,8 @@ int16_t getCurrentOffset(uint8_t interface)
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Current Offset for A/D measurements
 
-@parameter uint8_t interface: the interface 0...NUM_IFS.
-@parameter uint16_t current offset value
+@param interface: uint8_t the interface 0...NUM_IFS.
+@param offset: uint16_t current offset value
 */
 
 void setCurrentOffset(uint8_t interface, int16_t offset)
@@ -273,6 +283,8 @@ void setCurrentOffset(uint8_t interface, int16_t offset)
 /** @brief Provide the Watchdog Task Time Interval
 
 This is the time between decision updates.
+
+@returns portTickType Watchdog Task Time Interval
 */
 
 portTickType getWatchdogDelay(void)
@@ -284,6 +296,8 @@ portTickType getWatchdogDelay(void)
 /** @brief Provide the Charging Task Time Interval
 
 This is the time between decision updates.
+
+@returns portTickType Charging Task Time Interval
 */
 
 portTickType getChargerDelay(void)
@@ -295,6 +309,8 @@ portTickType getChargerDelay(void)
 /** @brief Provide the Measurement Task Time Interval
 
 This is the time between measurement updates.
+
+@returns portTickType Measurement Task Time Interval
 */
 
 portTickType getMeasurementDelay(void)
@@ -303,9 +319,11 @@ portTickType getMeasurementDelay(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Monitor Task Time Interval
+/** @brief Get the Monitor Task Time Interval
 
 This is the time between decision updates.
+
+@returns portTickType Monitor Task Time Interval
 */
 
 portTickType getMonitorDelay(void)
@@ -314,9 +332,11 @@ portTickType getMonitorDelay(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide the Calibration Time Interval
+/** @brief Get the Calibration Time Interval
 
 This is the time between measurement updates.
+
+@returns portTickType Calibration Time Interval
 */
 
 portTickType getCalibrationDelay(void)
@@ -325,8 +345,9 @@ portTickType getCalibrationDelay(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Provide any Manual Switch Setting
+/** @brief Get any Manual Switch Setting
 
+@returns uint8_t switch setting
 */
 
 uint8_t getPanelSwitchSetting(void)
@@ -337,17 +358,20 @@ uint8_t getPanelSwitchSetting(void)
 /*--------------------------------------------------------------------------*/
 /** @brief Provide any Manual Switch Setting
 
+@param setting: uint8_t switch setting
 */
 
-void setPanelSwitchSetting(uint8_t battery)
+void setPanelSwitchSetting(uint8_t setting)
 {
-    configData.config.panelSwitchSetting = battery;
+    configData.config.panelSwitchSetting = setting;
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Recording switch
+/** @brief Get Recording switch
 
 True if recording has been requested, false otherwise.
+
+@returns bool recording setting.
 */
 
 bool isRecording(void)
@@ -356,9 +380,11 @@ bool isRecording(void)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Automatic Tracking switch
+/** @brief Get Automatic Tracking switch
 
 True if automatic tracking has been requested, false otherwise.
+
+@returns bool Autotrack setting.
 */
 
 bool isAutoTrack(void)
@@ -370,6 +396,8 @@ bool isAutoTrack(void)
 /** @brief Automatic Tracking switch
 
 True if automatic tracking has been requested, false otherwise.
+
+@returns uint8_t Monitor Strategy byte.
 */
 
 uint8_t getMonitorStrategy(void)

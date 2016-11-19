@@ -101,7 +101,7 @@ This collects characters received over the communications interface and packages
 them for action as a command.
 */
 
-void prvCommsTask( void *pvParameters )
+void prvCommsTask(void *pvParameters)
 {
     pvParameters = pvParameters;
 
@@ -172,7 +172,7 @@ by an upper case command character and an arbitrary length set of parameters
 
 Unrecognizable messages are just discarded.
 
-@param[in] char *line: the command line in ASCII
+@param[in] line: uint8_t* pointer to the command line in ASCII
 */
 
 static void parseCommand(uint8_t* line)
@@ -943,9 +943,9 @@ length. The response parameters are converted to ASCII integer for debug.
 
 This will abandon the message if commsSendSemaphore cannot be obtained.
 
-@param char* ident: an identifier string recognized by the receiving program.
-@param int32_t param1: first parameter.
-@param int32_t param2: second parameter.
+@param ident: char* an identifier string recognized by the receiving program.
+@param param1: int32_t first integer parameter.
+@param param2: int32_t second integer parameter.
 */
 
 void dataMessageSend(char* ident, int32_t param1, int32_t param2)
@@ -971,9 +971,9 @@ commsSendQueue is empty.
 
 This blocks indefinitely until the queue is empty of all messages.
 
-@param char* ident: an identifier string recognized by the receiving program.
-@param int32_t param1: first parameter.
-@param int32_t param2: second parameter.
+@param ident: char* an identifier string recognized by the receiving program.
+@param param1: int32_t first integer parameter.
+@param param2: int32_t second integer parameter.
 */
 
 void dataMessageSendLowPriority(char* ident, int32_t param1, int32_t param2)
@@ -1004,8 +1004,8 @@ Block indefinitely as the message must not be abandoned */
 Use to send a simple response to a command. The calling task will block until
 commsSendSemaphore is available.
 
-@param[in] char* ident. Response identifier string
-@param[in] int32_t parameter. Single integer parameter.
+@param[in] ident: char* Response identifier string
+@param[in] parameter: int32_t Single integer parameter.
 */
 
 void sendResponse(char* ident, int32_t parameter)
@@ -1027,8 +1027,8 @@ void sendResponse(char* ident, int32_t parameter)
 Use to send a simple response to a command. The calling task will block until
 commsSendSemaphore is available.
 
-@param[in] char* ident. Response identifier string
-@param[in] int32_t parameter. Single integer parameter.
+@param[in] ident: char* Response identifier string
+@param[in] parameter: int32_t Single integer parameter.
 */
 
 void sendResponseLowPriority(char* ident, int32_t parameter)
@@ -1057,8 +1057,8 @@ Block indefinitely as the message must not be abandoned */
 Use to send a simple debug response to a command. The calling task will block
 until commsSendSemaphore is available.
 
-@param[in] char* ident. Response identifier string
-@param[in] int32_t parameter. Single integer parameter.
+@param[in] ident: char* Response identifier string
+@param[in] parameter: int32_t Single integer parameter.
 */
 
 void sendDebugResponse(char* ident, int32_t parameter)
@@ -1085,8 +1085,8 @@ Block indefinitely as the message must not be abandoned */
 Use to send a string. This simply abandons the message if it cannot get the
 commsSendSemaphore.
 
-@param[in] char* ident. Response identifier string
-@param[in] int32_t parameter. Single integer parameter.
+@param[in] ident: char* Response identifier string
+@param[in] string: char* Single integer parameter.
 */
 
 void sendString(char* ident, char* string)
@@ -1113,8 +1113,8 @@ Use to send a string. A message is only sent if the commsSendQueue is empty.
 
 This blocks indefinitely until the queue is empty of all messages.
 
-@param[in] char* ident. Response identifier string
-@param[in] char* string. Arbitrary length string.
+@param[in] ident: char* Response identifier string
+@param[in] string: char* Arbitrary length string.
 */
 
 void sendStringLowPriority(char* ident, char* string)
@@ -1149,8 +1149,8 @@ empty and the debug messages are enabled.
 
 This blocks indefinitely until the queue is empty of all messages.
 
-@param[in] char* ident. Response identifier string
-@param[in] int32_t parameter. Single integer parameter.
+@param[in] ident: char* Response identifier string
+@param[in] string: char* Single integer parameter string.
 */
 
 void sendDebugString(char* ident, char* string)
@@ -1178,7 +1178,7 @@ Block indefinitely as the message must not be abandoned */
 /*--------------------------------------------------------------------------*/
 /** @brief Print out the contents of a register (debug)
 
-@param[in] uint32_t reg: full address of register.
+@param[in] reg: uint32_t full address of register.
 
 */
 
@@ -1195,7 +1195,7 @@ void commsPrintRegister(uint32_t reg)
 /*--------------------------------------------------------------------------*/
 /** @brief Print out a value in ASCII decimal form (ack Thomas Otto)
 
-@param[in] int32_t value: integer value to be printed.
+@param[in] value: int32_t integer value to be printed.
 */
 
 void commsPrintInt(int32_t value)
@@ -1214,7 +1214,7 @@ void commsPrintInt(int32_t value)
 /*--------------------------------------------------------------------------*/
 /** @brief Print out a value in 16 bit ASCII hex form
 
-@param[in] int32_t value: integer value to be printed.
+@param[in] value: int32_t integer value to be printed.
 */
 
 void commsPrintHex(uint32_t value)
@@ -1240,7 +1240,7 @@ void commsPrintHex(uint32_t value)
 /*--------------------------------------------------------------------------*/
 /** @brief Print a String
 
-@param[in] char *ch: pointer to string to be printed.
+@param[in] ch: char* pointer to string to be printed.
 */
 
 void commsPrintString(char *ch)
@@ -1264,7 +1264,7 @@ If the queue fails to respond it is reset. A number of messages will be lost but
 hopefully the application will continue to run. A receiving program may see
 a corrupted message.
 
-@param[in] char *ch: pointer to character to be printed.
+@param[in] ch: char* pointer to character to be printed.
 */
 
 void commsPrintChar(char *ch)
@@ -1289,6 +1289,8 @@ This is called if the lapse communications timer is not reset by a received
 message within the timeout period. The GUI is expected to regularly send a
 message of some sort to keep communications alive. This feature allows
 power hungry communications circuits to be used only when the GUI is open.
+
+@param lapseCommsTimer: xTimerHandle handle for Communications Timer Function
 */
 
 void lapseCommsCallback(xTimerHandle lapseCommsTimer)

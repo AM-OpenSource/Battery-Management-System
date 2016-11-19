@@ -164,7 +164,7 @@ F - Free space on drive
 
 All commands return a status value at the end of any other data sent.
 
-@param[in] char *line: the command line in ASCII
+@param[in] line: char* the command line in ASCII
 */
 
 static void parseFileCommand(char *line)
@@ -458,7 +458,8 @@ Checks the filename and handle for the write and read files, if they are open. *
 The file handle map consists of bits set when a handle has been allocated.
 This function searches for a free handle.
 
-@returns 255 if no handle was allocated (too many open files), or 0..MAX_OPEN_FILES-1
+@returns uint8_t 0..MAX_OPEN_FILES-1 or 255 if no handle was allocated (too many
+open files).
 */
 
 static uint8_t findFileHandle(void)
@@ -481,6 +482,8 @@ static uint8_t findFileHandle(void)
 
 The file handle map consists of bits set when a handle has been allocated.
 This function deletes a handle. Does nothing if file handle is not valid.
+
+@param fileHandle: uint8_t the handle for the file to be deleted.
 */
 
 static void deleteFileHandle(uint8_t fileHandle)
@@ -501,9 +504,9 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param char* ident: an identifier string.
-@param int32_t param1: first parameter.
-@param int32_t param2: second parameter.
+@param ident: char* an identifier string.
+@param  param1: int32_t first parameter.
+@returns uint8_t file status.
 */
 
 uint8_t recordSingle(char* ident, int32_t param1)
@@ -544,9 +547,9 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param char* ident: an identifier string.
-@param int32_t param1: first parameter.
-@param int32_t param2: second parameter.
+@param ident: char* an identifier string.
+@param  param1: int32_t first parameter.
+@param  param2: int32_t second parameter.
 @returns uint8_t file status.
 */
 
@@ -591,9 +594,9 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param char* ident: an identifier string.
-@param int32_t param1: first parameter.
-@param int32_t param2: second parameter.
+@param ident: char* an identifier string.
+@param  string: char string to record.
+@returns uint8_t file status.
 */
 
 uint8_t recordString(char* ident, char* string)
@@ -629,9 +632,9 @@ All commands are a single character followed by the length of the parameters.
 The command is aborted in its entirety if there is insufficient space available
 in the queue.
 
-@param[in] char command: Command to be sent.
-@param[in] uint8_t length: Length of parameter set only.
-@param[in] uint8_t *parameters: Parameter list.
+@param[in] command: char Command to be sent.
+@param[in] length: uint8_t Length of parameter set only.
+@param[in] parameters: uint8_t* Parameter list.
 @returns true if the command succeeded.
 */
 

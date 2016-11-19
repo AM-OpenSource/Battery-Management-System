@@ -908,8 +908,9 @@ This model covers the Gel and Wet cell batteries.
 Voltage is referred to the value at 48.9C so that one table can be used.
 Refer to documentation for the model formula derived.
 
-@param uint32_t voltage. Measured open circuit voltage. Volts times 256
-@param uint32_t temperature. Temperature degrees C times 256
+@param voltage: uint32_t Measured open circuit voltage. Volts times 256
+@param temperature: uint32_t Temperature degrees C times 256
+@param type: battery_Type
 @return int16_t Percentage State of Charge times 256.
 */
 
@@ -945,7 +946,8 @@ int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type)
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Battery Current Offset
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@return int16_t battery current offset.
 */
 
 int16_t getBatteryCurrentOffset(int battery)
@@ -956,7 +958,8 @@ int16_t getBatteryCurrentOffset(int battery)
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Battery State of Charge
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
+@return int16_t battery SoC.
 */
 
 int16_t getBatterySoC(int battery)
@@ -967,6 +970,7 @@ int16_t getBatterySoC(int battery)
 /*--------------------------------------------------------------------------*/
 /** @brief Get the Battery Under Load
 
+@return int16_t battery under load.
 */
 
 int16_t getBatteryUnderLoad(void)
@@ -977,7 +981,7 @@ int16_t getBatteryUnderLoad(void)
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Battery Under Load
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
 */
 
 void setBatteryUnderLoad(int battery)
@@ -991,7 +995,7 @@ void setBatteryUnderLoad(int battery)
 This is done by the charging task when the battery enters float phase.
 If the current SoC is less than 100%, report the battery as faulty.
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
 */
 
 void resetBatterySoC(int battery)
@@ -1006,7 +1010,7 @@ void resetBatterySoC(int battery)
 State of charge is percentage times 256. The accumulated charge is also computed
 here in ampere seconds.
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
 @param[in] soc: int16_t 0..25600
 */
 
@@ -1031,7 +1035,7 @@ void startCalibration()
 /*--------------------------------------------------------------------------*/
 /** @brief Change Missing Status of batteries
 
-@param[in] battery: 0..NUM_BATS-1
+@param[in] battery: int 0..NUM_BATS-1
 @param[in] missing: boolean
 */
 

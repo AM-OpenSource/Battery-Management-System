@@ -38,7 +38,7 @@ Initial 30 November 2013
 The conversion stops without error when the first non-numerical character
 is encountered.
 
-@param[in] char* buffer: externally defined buffer with the string.
+@param[in] buffer: char* externally defined buffer with the string.
 @returns int32_t: integer value to be converted to ASCII form.
 */
 
@@ -55,8 +55,8 @@ int32_t asciiToInt(char* buffer)
 /*--------------------------------------------------------------------------*/
 /** @brief Convert an Integer to ASCII decimal form
 
-@param[in] int32_t value: integer value to be converted to ASCII form.
-@param[in] char* buffer: externally defined buffer to hold the result.
+@param[in] value: int32_t integer value to be converted to ASCII form.
+@param[in] buffer: char* externally defined buffer to hold the result.
 */
 
 void intToAscii(int32_t value, char* buffer)
@@ -92,8 +92,8 @@ void intToAscii(int32_t value, char* buffer)
 /*--------------------------------------------------------------------------*/
 /** @brief Append a string to another
 
-@param[in] char* string: original string, returned after appending.
-@param[in] char* appendage: string to be appended to end.
+@param[in] string: char* original string, returned after appending.
+@param[in] appendage: char* string to be appended to end.
 */
 
 void stringAppend(char* string, char* appendage)
@@ -109,8 +109,8 @@ void stringAppend(char* string, char* appendage)
 /*--------------------------------------------------------------------------*/
 /** @brief String Copy
 
-@param[in] char* string: copied string, returned.
-@param[in] char* original: original string to be copied.
+@param[in] string: char* copied string, returned.
+@param[in] original: char* original string to be copied.
 */
 
 void stringCopy(char* string, char* original)
@@ -126,7 +126,7 @@ void stringCopy(char* string, char* original)
 /*--------------------------------------------------------------------------*/
 /** @brief Compute string length
 
-@param[in] char* string: string to be measured for length.
+@param[in] string: char* string to be measured for length.
 @returns int16_t: length of string.
 */
 
@@ -140,8 +140,8 @@ uint16_t stringLength(char* string)
 /*--------------------------------------------------------------------------*/
 /** @brief Equality of Strings
 
-@param[in] char* string1: 
-@param[in] char* string2: 
+@param[in] string1: char* first string
+@param[in] string2: char* second string
 @returns uint8_t: 1 if strings are equal, 0 otherwise.
 */
 
