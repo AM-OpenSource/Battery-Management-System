@@ -482,8 +482,7 @@ The limit voltage is adjusted according to temperature.
 
 @param[in] int16_t voltage: The measured voltage.
 @param[in] int16_t vLimit: The limit voltage target.
-@param[in] int16_t dutyCycle: The current duty cycle.
-@returns int16_t The adjusted duty cycle.
+@param[in] int16_t *dutyCycle: The current duty cycle.
 */
 
 void adaptDutyCycle(int16_t voltage, int16_t vLimit, uint16_t* dutyCycle)

@@ -159,8 +159,8 @@ Limit is used to prevent charging from occurring in extreme heat. */
 /* Battery Monitoring State default triggers. */
 
 /* These are in absolute voltages times 256. */
-#define LOW_VOLTAGE         2816    /* 11.0V */
-#define CRITICAL_VOLTAGE    2688    /* 10.5V */
+#define LOW_VOLTAGE         3072    /* 12.0V */
+#define CRITICAL_VOLTAGE    2816    /* 11.0V */
 
 #define LOW_SOC             60*256   /* 60% */
 #define CRITICAL_SOC        45*256   /* 45% */
