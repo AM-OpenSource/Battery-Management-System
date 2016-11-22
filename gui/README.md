@@ -10,10 +10,16 @@ TCP/IP when connected through an intermediate machine that maps the serial
 interface to a TCP/IP interface. This makes it possible to monitor the system
 remotely over Internet.
 
+QWT must be installed and the .pro file modified if necessary to point to it.
+
 To compile this program, ensure that QT4.8 is installed and also that
 qextserialport has been downloaded and unzipped into a suitable directory. It
 doesn't need to be compiled or installed, as the GUI will incorporate it
 directly into the compile and link procedure.
+
+make clean
+qmake-qt4
+make
 
 The file power-management.pro must be modified to point to the directory
 holding qextserialport.
@@ -39,5 +45,5 @@ TODO
 
 1. File - add file info (date).
 2. Download feature (may cause saturation of the comms interface).
-
+3. Update eventually to QT5
 

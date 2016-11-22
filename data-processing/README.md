@@ -17,6 +17,12 @@ a specified time interval:
 
 QWT must be installed and the .pro file modified if necessary to point to it.
 
+To compile this program, ensure that QT4.8 is installed.
+
+make clean
+qmake-qt4
+make
+
 Fields:
 
 1. Time
@@ -54,4 +60,8 @@ Panel. Two subfields for each: O for overload, U for undervoltage.
 1. Fields for User defined debug messages
 
 (c) K. Sarkies 17/11/2016
+
+TODO
+
+1. Update eventually to QT5
 

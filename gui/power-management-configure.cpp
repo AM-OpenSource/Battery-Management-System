@@ -162,83 +162,83 @@ void PowerManagementConfigGui::on_setBatteryButton_clicked()
     typeSet1.append(QString("%1").arg(PowerManagementConfigUi.battery1TypeCombo
                 ->currentIndex(),1));
     typeSet1.append(QString("%1").arg(battery1Capacity,-0));
-    socket->write(typeSet1.append("\n\r").toAscii().constData());
+    socket->write(typeSet1.append("\n\r").toLatin1().constData());
     QString typeSet2 = "pT2";
     typeSet2.append(QString("%1").arg(PowerManagementConfigUi.battery2TypeCombo
                 ->currentIndex(),1));
     typeSet2.append(QString("%1").arg(battery2Capacity,-0));
-    socket->write(typeSet2.append("\n\r").toAscii().constData());
+    socket->write(typeSet2.append("\n\r").toLatin1().constData());
     QString typeSet3 = "pT3";
     typeSet3.append(QString("%1").arg(PowerManagementConfigUi.battery3TypeCombo
                 ->currentIndex(),1));
     typeSet3.append(QString("%1").arg(battery3Capacity,-0));
-    socket->write(typeSet3.append("\n\r").toAscii().constData());
+    socket->write(typeSet3.append("\n\r").toLatin1().constData());
 /* Set bulk current limit scales. These are the scaling factors relating the
 battery capacity to the bulk current limit. */
     QString bulkISet1 = "pI1";
     bulkISet1.append(QString("%1")
                 .arg((unsigned int)(battery1Capacity/
                  PowerManagementConfigUi.battery1AbsorptionCurrent->value()),-0));
-    socket->write(bulkISet1.append("\n\r").toAscii().constData());
+    socket->write(bulkISet1.append("\n\r").toLatin1().constData());
     QString bulkISet2 = "pI2";
     bulkISet2.append(QString("%1")
                 .arg((unsigned int)(battery2Capacity/
                  PowerManagementConfigUi.battery2AbsorptionCurrent->value()),-0));
-    socket->write(bulkISet2.append("\n\r").toAscii().constData());
+    socket->write(bulkISet2.append("\n\r").toLatin1().constData());
     QString bulkISet3 = "pI3";
     bulkISet3.append(QString("%1")
                 .arg((unsigned int)(battery3Capacity/
                  PowerManagementConfigUi.battery3AbsorptionCurrent->value()),-0));
-    socket->write(bulkISet3.append("\n\r").toAscii().constData());
+    socket->write(bulkISet3.append("\n\r").toLatin1().constData());
 // Set gassing voltage limits
     QString gassingVSet1 = "pA1";
     gassingVSet1.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery1AbsorptionVoltage
                 ->value()*256),-0));
-    socket->write(gassingVSet1.append("\n\r").toAscii().constData());
+    socket->write(gassingVSet1.append("\n\r").toLatin1().constData());
     QString gassingVSet2 = "pA2";
     gassingVSet2.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery2AbsorptionVoltage
                 ->value()*256),-0));
-    socket->write(gassingVSet2.append("\n\r").toAscii().constData());
+    socket->write(gassingVSet2.append("\n\r").toLatin1().constData());
     QString gassingVSet3 = "pA3";
     gassingVSet3.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery3AbsorptionVoltage
                 ->value()*256),-0));
-    socket->write(gassingVSet3.append("\n\r").toAscii().constData());
+    socket->write(gassingVSet3.append("\n\r").toLatin1().constData());
 // Set float voltage limits
     QString floatVSet1 = "pF1";
     floatVSet1.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery1FloatVoltage
                 ->value()*256),-0));
-    socket->write(floatVSet1.append("\n\r").toAscii().constData());
+    socket->write(floatVSet1.append("\n\r").toLatin1().constData());
     QString floatVSet2 = "pF2";
     floatVSet2.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery2FloatVoltage
                 ->value()*256),-0));
-    socket->write(floatVSet2.append("\n\r").toAscii().constData());
+    socket->write(floatVSet2.append("\n\r").toLatin1().constData());
     QString floatVSet3 = "pF3";
     floatVSet3.append(QString("%1")
                 .arg((unsigned int)(PowerManagementConfigUi.battery3FloatVoltage
                 ->value()*256),-0));
-    socket->write(floatVSet3.append("\n\r").toAscii().constData());
+    socket->write(floatVSet3.append("\n\r").toLatin1().constData());
 /* Set float current scales. These are the scaling factors relating the
 battery capacity to the float current trigger. */
     QString floatISet1 = "pf1";
     floatISet1.append(QString("%1")
                 .arg((unsigned int)(battery1Capacity/
                  PowerManagementConfigUi.battery1FloatCurrent->value()),-0));
-    socket->write(floatISet1.append("\n\r").toAscii().constData());
+    socket->write(floatISet1.append("\n\r").toLatin1().constData());
     QString floatISet2 = "pf2";
     floatISet2.append(QString("%1")
                 .arg((unsigned int)(battery2Capacity/
                  PowerManagementConfigUi.battery2FloatCurrent->value()),-0));
-    socket->write(floatISet2.append("\n\r").toAscii().constData());
+    socket->write(floatISet2.append("\n\r").toLatin1().constData());
     QString floatISet3 = "pf3";
     floatISet3.append(QString("%1")
                 .arg((unsigned int)(battery3Capacity/
                  PowerManagementConfigUi.battery3FloatCurrent->value()),-0));
-    socket->write(floatISet3.append("\n\r").toAscii().constData());
+    socket->write(floatISet3.append("\n\r").toLatin1().constData());
 /* Write to FLASH */
     socket->write("aW\n\r");
 /* Refresh display of set parameters */
@@ -454,27 +454,27 @@ void PowerManagementConfigGui::on_setTrackOptionButton_clicked()
     }
     QString command = "ps";
     socket->write(command.append(QString("%1").arg(option,1)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pv";
     int lowVoltage = (int)(PowerManagementConfigUi.
                                 lowVoltageDoubleSpinBox->value()*256);
     socket->write(command.append(QString("%1").arg(lowVoltage,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pV";
     int criticalVoltage = (int)(PowerManagementConfigUi.
                                 criticalVoltageDoubleSpinBox->value()*256);
     socket->write(command.append(QString("%1").arg(criticalVoltage,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "px";
     int lowSoC = (int)(PowerManagementConfigUi.
                                 lowSoCSpinBox->value())*256;
     socket->write(command.append(QString("%1").arg(lowSoC,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pX";
     int criticalSoC = (int)(PowerManagementConfigUi.
                                 criticalSoCSpinBox->value())*256;
     socket->write(command.append(QString("%1").arg(criticalSoC,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
 /* Write to FLASH */
     socket->write("aW\n\r");
 /* Ask for monitor strategy parameter settings */
@@ -492,23 +492,23 @@ void PowerManagementConfigGui::on_setChargeOptionButton_clicked()
     QString command = "pR";
     int restTime = PowerManagementConfigUi.restTimeSpinBox->value();
     socket->write(command.append(QString("%1").arg(restTime,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pG";
     int absorptionTime = PowerManagementConfigUi.absorptionTimeSpinBox->value();
     socket->write(command.append(QString("%1").arg(absorptionTime,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pD";
     int dutyCycleMin = PowerManagementConfigUi.minimumDutyCycleSpinBox->value()*256;
     socket->write(command.append(QString("%1").arg(dutyCycleMin,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pe";
     int floatTime = PowerManagementConfigUi.floatDelaySpinBox->value();
     socket->write(command.append(QString("%1").arg(floatTime,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
     command = "pB";
     int floatSoC = PowerManagementConfigUi.floatBulkSoCSpinBox->value()*256;
     socket->write(command.append(QString("%1").arg(floatSoC,2)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
 /* Write to FLASH */
     socket->write("aW\n\r");
 /* Ask for charger strategy parameter settings */
@@ -535,7 +535,7 @@ void PowerManagementConfigGui::on_absorptionMuteCheckbox_clicked()
     }
     QString command = "pS";
     socket->write(command.append(QString("%1").arg(option,1)).append("\n\r")
-                         .toAscii().constData());
+                         .toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -550,7 +550,7 @@ void PowerManagementConfigGui::on_timeSetButton_clicked()
     localDateTime.setTimeSpec(Qt::UTC);
     socket->write("pH");
     socket->write(localDateTime.toString(Qt::ISODate).append("\n\r")
-                               .toAscii().constData());
+                               .toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -728,7 +728,7 @@ void PowerManagementConfigGui::onMessageReceived(const QString &response)
     int controlByte = 0;
     if (size > 1) controlByte = breakdown[1].simplified().toInt();
 // Error Code
-    switch (command.toAscii())
+    switch (command.toLatin1())
     {
 // Show Measured Quiescent Current
         case 'Q':
