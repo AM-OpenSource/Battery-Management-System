@@ -771,6 +771,7 @@ the point at which charging is effective. */
         if ((batteryUnderCharge > 0) &&
             (getBatteryVoltage(batteryUnderCharge-1) > getPanelVoltage(0)+128))
         {
+            decisionStatus |= 0x1000;
             batteryUnderCharge = 0;
         }
 /**
