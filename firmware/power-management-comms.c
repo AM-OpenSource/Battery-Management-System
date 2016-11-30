@@ -62,10 +62,6 @@ static void initGlobals(void);
 static void parseCommand(uint8_t* line);
 static void resetCallback(xTimerHandle resethandle);
 static void lapseCommsCallback(xTimerHandle lapseCommsTimer);
-void commsPrintInt(int32_t value);
-void commsPrintHex(uint32_t value);
-void commsPrintString(char *ch);
-void commsPrintChar(char *ch);
 
 /*--------------------------------------------------------------------------*/
 /* Global Variables */

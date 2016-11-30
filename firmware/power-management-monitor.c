@@ -334,7 +334,7 @@ via the File module, and transmitted via the Communications module. */
 <b>Compute the Battery State:</b>
 <ul>
 <li> Check to see if any batteries are missing. This can happen if a battery put
- under load has been removed. Remove any existing loads and charger from the
+ under load has been removed. Remove any existing loads and charger from that
 battery. If a battery has already been marked as missing then perpetuate the
 state.
 @note Missing batteries not under load will not show as missing due to the
@@ -365,13 +365,25 @@ removed here; this must be done externally. */
             {
 /**
 <li> Access charge accumulated for each battery since the last time, and update
-the SoC. The maximum charge is the battery capacity in ampere seconds. */
-                batteryCharge[i] += getBatteryAccumulatedCharge(i);
+the SoC. The maximum charge is the battery capacity in ampere seconds
+(coulombs). */
+                int16_t accumulatedCharge = getBatteryAccumulatedCharge(i);
+                batteryCharge[i] += accumulatedCharge;
                 uint32_t chargeMax = getBatteryCapacity(i)*3600*256;
                 if (batteryCharge[i] < 0) batteryCharge[i] = 0;
                 if ((uint32_t)batteryCharge[i] > chargeMax)
                     batteryCharge[i] = chargeMax;
                 batterySoC[i] = batteryCharge[i]/(getBatteryCapacity(i)*36);
+commsPrintString("dD");
+commsPrintString(",");
+commsPrintInt(getBatteryCurrent(i)-currentOffsets.data[i]);
+commsPrintString(",");
+commsPrintInt(accumulatedCharge);
+commsPrintString(",");
+commsPrintInt(batteryCharge);
+commsPrintString(",");
+commsPrintInt(batterySoC);
+commsPrintString("\r\n");
 /* Collect the battery charge fill state estimations. */
                 uint16_t batteryAbsVoltage = abs(getBatteryVoltage(i));
                 batteryFillState[i] = normalF;
@@ -384,7 +396,8 @@ the SoC. The maximum charge is the battery capacity in ampere seconds. */
             }
         }
 /**
-<li> Rank the batteries by charge state. Bubble sort to have the highest SoC set above). */
+<li> Rank the batteries by charge state. Bubble sort to have the highest SoC set
+to the start of the list and the lowest at the end. */
         uint8_t k;
         uint16_t temp;
         uint8_t batteryFillStateSort[NUM_BATS];        
@@ -598,10 +611,10 @@ deallocate the loaded battery. This will allow the charger to swap back and
 forth as the loaded battery droops and the charging battery completes charge.
 If the charger has been deallocated, maintain the load on the same battery as
 long as it is still in normal state. */
-                    if ((batteryUnderCharge != 0) &&
-                        (getMonitorStrategy() & SEPARATE_LOAD) &&
-                        (batteryUnderLoad == batteryUnderCharge))
-                        batteryUnderLoad = 0;
+                if ((batteryUnderCharge != 0) &&
+                    (getMonitorStrategy() & SEPARATE_LOAD) &&
+                    (batteryUnderLoad == batteryUnderCharge))
+                    batteryUnderLoad = 0;
 
 /**
 <li> If the loads are unallocated, set to the highest SoC unallocated battery.
@@ -645,10 +658,9 @@ battery is not in float with SoC > 95%, nor in rest phase, regardless if it is
 isolated. Also if the weakest battery is critical, reallocate unconditionally to
 the charger. Also if the battery under charge is normal, allocate to the weakest
 battery. If no suitable battery is found leave the charger unallocated. */
-                uint8_t weakestBattery = batteryFillStateSort[numBats-1];                
                 if ((batteryUnderCharge == 0) || 
                     (batteryFillState[batteryUnderCharge-1] == normalF) ||
-                    (batteryFillState[weakestBattery-1] == criticalF))
+                    (batteryFillState[lowestBattery-1] == criticalF))
                 {
                     decisionStatus |= 0x01;
 /**
@@ -751,11 +763,13 @@ rest phases regardless in case the algorithm got the charge states wrong.
 /**
 <b>Global Decisions:</b>
 <ul>
-<li> If the charging voltage is lower than the battery voltage, turn off
+<li> If the charging voltage drops below the battery voltage, turn off
 charging altogether. This will allow more flexibility in managing isolation
-during night periods. */
+during night periods. Though there may be another battery that could be put on
+charge, there is little point seeking it as the panel output would be below
+the point at which charging is effective. */
         if ((batteryUnderCharge > 0) &&
-            (getBatteryVoltage(batteryUnderCharge-1) > getPanelVoltage(0)))
+            (getBatteryVoltage(batteryUnderCharge-1) > getPanelVoltage(0)+128))
         {
             batteryUnderCharge = 0;
         }
