@@ -256,7 +256,7 @@ void DataProcessingGui::on_splitButton_clicked()
             {
                 return;
             }
-// Don't write the heade into the appended file
+// Don't write the header into the appended file
             else if (msgBox.clickedButton() == appendButton)
             {
                 header = false;
@@ -305,8 +305,8 @@ void DataProcessingGui::on_energyButton_clicked()
     if (! inFile->isOpen()) return;
     inFile->seek(0);      // rewind file
     tableRow = 0;
-    int interval = DataProcessingMainUi.intervalSpinBox->value();
-    int intervaltype = DataProcessingMainUi.intervalType->currentIndex();
+//    int interval = DataProcessingMainUi.intervalSpinBox->value();
+//    int intervaltype = DataProcessingMainUi.intervalType->currentIndex();
     QTextStream inStream(inFile);
     QDateTime startTime = DataProcessingMainUi.startTime->dateTime();
     QDateTime finalTime = DataProcessingMainUi.endTime->dateTime();
@@ -326,7 +326,7 @@ void DataProcessingGui::on_energyButton_clicked()
     long load2Seconds = 0;
     long panelSeconds = 0;
     long elapsedSeconds = 0;
-    int indicators = 0;
+//    int indicators = 0;
     DataProcessingMainUi.energyView->clear();
 // Set the end time to the record before midnight
     QDateTime endTime(startTime.date(),QTime(23,59,59));
@@ -340,7 +340,7 @@ void DataProcessingGui::on_energyButton_clicked()
             if (size <= 0) break;
             QString firstText = breakdown[0].simplified();
             int secondField = 0;
-            int thirdField = 0;
+//            int thirdField = 0;
             if (size > 1)
             {
 // Extract the time record for time range comparison.
@@ -358,9 +358,9 @@ void DataProcessingGui::on_energyButton_clicked()
                     secondField = breakdown[1].simplified().toInt();
                 }
             }
-            if (size > 2) thirdField = breakdown[2].simplified().toInt();
+//            if (size > 2) thirdField = breakdown[2].simplified().toInt();
 // Extract records of measured currents and add up. The second field is the
-// current times 256 and the third is the voltage times 256.
+// current times 256 and the third is the voltage times 256 (not needed).
             if (time >= startTime)
             {
                 if (firstText == "dB1")
@@ -403,11 +403,8 @@ void DataProcessingGui::on_energyButton_clicked()
                     panelEnergy += panelCurrent*elapsedSeconds;
                     panelSeconds += elapsedSeconds;
                 }
-// Get record of indicators
-                if (firstText == "dI")
-                {
-                    indicators = secondField;
-                }
+// Get record of indicators (not needed)
+//                if (firstText == "dI") indicators = secondField;
             }
         }
 // Completion of a day or file. Print out and get ready for next.
@@ -534,8 +531,8 @@ void DataProcessingGui::on_extractButton_clicked()
     if (! inFile->isOpen()) return;
     if (! openSaveFile()) return;
     inFile->seek(0);      // rewind input file
-    int interval = DataProcessingMainUi.intervalSpinBox->value();
-    int intervaltype = DataProcessingMainUi.intervalType->currentIndex();
+//    int interval = DataProcessingMainUi.intervalSpinBox->value();
+//    int intervaltype = DataProcessingMainUi.intervalType->currentIndex();
     QTextStream inStream(inFile);
     QTextStream outStream(outFile);
     QDateTime startTime = DataProcessingMainUi.startTime->dateTime();
@@ -737,9 +734,12 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
     bool showCurrent = ! DataProcessingMainUi.voltagePlotCheckBox->isChecked();
     bool showTemperature = DataProcessingMainUi.temperaturePlotCheckbox->isChecked();
     bool showStates = DataProcessingMainUi.statesPlotCheckbox->isChecked();
-    float xScaleLow,xScaleHigh,yScaleLow,yScaleHigh;
+    float yScaleLow,yScaleHigh;
     bool showPlot1,showPlot2,showPlot3,showPlot4;
-    int i1,i2,i3,i4;                // Columns for data series
+    int i1 = 0;
+    int i2 = 0;
+    int i3 = 0;
+    int i4 = 0;                // Columns for data series
 
 // Get data file
     QString fileName = QFileDialog::getOpenFileName(0,
@@ -914,7 +914,7 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
                     float stateOfCharge = breakdown[i2].simplified().toFloat(&ok);
                     points2 << QPointF(index,stateOfCharge);
                     QString chargeModetext = breakdown[i3].simplified();
-                    float chargeMode;
+                    float chargeMode = 0;
                     if (chargeModetext == "Isolate") chargeMode = 5;
                     if (chargeModetext == "Charge") chargeMode = 10;
                     if (chargeModetext == "Loaded") chargeMode = 0;
@@ -992,6 +992,169 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
 
     plot->resize(1000,600);
     plot->show();
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Select File to be analysed for faults
+
+The file is analysed for a variety of faults (TBD). The results are printed out
+to a report file.
+- Situations where the charger is not allocated but a battery is ready. To show
+  this look for no battery under charge and panel voltage above any battery.
+  Prnt the op state, charging phase, battery and panel voltages, switches,
+  decision and indicators.
+*/
+
+void DataProcessingGui::on_faultReportFileSelectButton_clicked()
+{
+// Create a report filename
+    QString reportFilename = QString("fault-report")
+                        .append(".csv");
+    QDir saveDirectory = fileInfo.absolutePath();
+    QString saveFile = saveDirectory.filePath(reportFilename);
+// Get data file
+    QString inputFilename = QFileDialog::getOpenFileName(0,
+                                "Data File","./","CSV Files (*.csv)");
+    if (inputFilename.isEmpty()) return;
+    QFile* inFile = new QFile(inputFilename);
+    fileInfo.setFile(inputFilename);
+    if (! inFile->open(QIODevice::ReadOnly)) return;
+    QTextStream inStream(inFile);
+
+    bool header = true;
+// If report filename exists, decide what action to take.
+// Build a message box with options
+    if (QFile::exists(saveFile))
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString("A previous save file ").append(reportFilename).
+                        append(" exists."));
+// Overwrite the existing file
+        QPushButton *overwriteButton = msgBox.addButton(tr("Overwrite"),
+                         QMessageBox::AcceptRole);
+// Append to the existing file
+        QPushButton *appendButton = msgBox.addButton(tr("Append"),
+                         QMessageBox::AcceptRole);
+// Quit altogether
+        QPushButton *abortButton = msgBox.addButton(tr("Abort"),
+                         QMessageBox::AcceptRole);
+        msgBox.exec();
+        if (msgBox.clickedButton() == overwriteButton)
+        {
+            QFile::remove(saveFile);
+        }
+        else if (msgBox.clickedButton() == abortButton)
+        {
+            return;
+        }
+// Don't write the header into the appended file
+        else if (msgBox.clickedButton() == appendButton)
+        {
+            header = false;
+        }
+    }
+// This will write to the file as created above, or append to the existing file.
+    QFile* outFile = new QFile(reportFilename);   // Open file for output
+    if (! outFile->open(QIODevice::WriteOnly | QIODevice::Append
+                                             | QIODevice::Text))
+    {
+        displayErrorMessage("Could not open the output file");
+        return;
+    }
+    QTextStream outStream(outFile);
+
+// Build header
+    if (header)
+    {
+        outStream << "Time,";
+        outStream << "B1 Op," << "B1 Charge,";
+        outStream << "B2 Op," << "B2 Charge,";
+        outStream << "B3 Op," << "B3 Charge,";
+        outStream << "B1 V," << "B2 V," << "B3 V," << "M1 V,";
+        outStream << "Switches," << "Decisions," << "Indicators";
+        outStream << "\n\r";
+    }
+// Read in data from input file
+// Skip first line as it may be a header
+    inFile->seek(0);      // rewind input file
+  	QString lineIn;
+    lineIn = inStream.readLine();
+    bool startRun = true;
+// Index increments by about 0.5 seconds
+// To have x-axis in date-time index must be "double" type, ie ms since epoch.
+    double index = 0;
+    QDateTime startTime;
+    QDateTime previousTime;
+    while (! inStream.atEnd())
+    {
+      	lineIn = inStream.readLine();
+        QStringList breakdown = lineIn.split(",");
+        int size = breakdown.size();
+        if (size == 36)
+        {
+            QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
+            if (time.isValid())
+            {
+// On the first run get the start time
+                if (startRun)
+                {
+                    startRun = false;
+                    startTime = time;
+                    previousTime = startTime;
+                    index = startTime.toMSecsSinceEpoch();
+                }
+// Try to keep index and time in sync to account for jumps in time.
+// Index is counting half seconds and time from records is integer seconds only.
+                if (previousTime == time) index += 500;
+                else index = time.toMSecsSinceEpoch();
+
+// Analyse for faults.
+// Look for charger not allocated but not all batteries in float or rest.
+                float battery1Voltage = breakdown[2].simplified().toFloat();
+                float battery2Voltage = breakdown[8].simplified().toFloat();
+                float battery3Voltage = breakdown[14].simplified().toFloat();
+                float panel1Voltage = breakdown[24].simplified().toFloat();
+                QString opState1 = breakdown[4].simplified();
+                QString opState2 = breakdown[10].simplified();
+                QString opState3 = breakdown[16].simplified();
+                QString chargeState1 = breakdown[5].simplified();
+                QString chargeState2 = breakdown[11].simplified();
+                QString chargeState3 = breakdown[17].simplified();
+                QString chargeMode1 = breakdown[6].simplified();
+                QString chargeMode2 = breakdown[12].simplified();
+                QString chargeMode3 = breakdown[18].simplified();
+                if ((opState1 != "Charge") &&
+                    (opState2 != "Charge") &&
+                    (opState3 != "Charge") &&
+                    (((chargeMode1 != "Float") && (chargeMode1 != "Rest")
+                                                   && (panel1Voltage > battery1Voltage)) ||
+                    ((chargeMode2 != "Float") && (chargeMode2 != "Rest")
+                                                   && (panel1Voltage > battery2Voltage)) ||
+                    ((chargeMode3 != "Float") && (chargeMode3 != "Rest")
+                                                   && (panel1Voltage > battery3Voltage))))
+                {
+                    outStream << breakdown[0].simplified() << ",";
+                    outStream << opState1 << ",";
+                    outStream << chargeMode1 << ",";
+                    outStream << opState2 << ",";
+                    outStream << chargeMode2 << ",";
+                    outStream << opState3 << ",";
+                    outStream << chargeMode3 << ",";
+                    outStream << battery1Voltage << ",";
+                    outStream << battery2Voltage << ",";
+                    outStream << battery3Voltage << ",";
+                    outStream << panel1Voltage << ",";
+                    outStream << breakdown[27].simplified() << ",";
+                    outStream << breakdown[28].simplified() << ",";
+                    outStream << breakdown[29].simplified();
+//                    outStream << lineIn;
+                    outStream << "\n\r";
+                }
+            }
+        }
+    }
+    outFile->close();
+    delete outFile;
 }
 
 //-----------------------------------------------------------------------------
@@ -1344,7 +1507,7 @@ QDateTime DataProcessingGui::findFirstTimeRecord(QFile* inFile)
 }
 
 //-----------------------------------------------------------------------------
-/** @brief Open a data file for Writing.
+/** @brief Open a Data File for Writing.
 
 This is called from other action functions. The file is requested in a file
 dialogue and opened. The function aborts if the file exists.
@@ -1393,9 +1556,9 @@ void DataProcessingGui::scanFile(QFile* inFile)
     uint calibration1Count = 0;
     uint calibration2Count = 0;
     uint calibration3Count = 0;
-    int battery1Current;
-    int battery2Current;
-    int battery3Current;
+    int battery1Current = 0;
+    int battery2Current = 0;
+    int battery3Current = 0;
     battery1CurrentZero = 0;
     battery2CurrentZero = 0;
     battery3CurrentZero = 0;
@@ -1478,5 +1641,6 @@ void DataProcessingGui::scanFile(QFile* inFile)
 
 void DataProcessingGui::displayErrorMessage(QString message)
 {
+    DataProcessingMainUi.errorMessageLabel->setText(message);
 }
 

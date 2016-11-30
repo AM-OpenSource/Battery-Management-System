@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>626</height>
+    <width>747</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -171,7 +171,7 @@
       <x>150</x>
       <y>210</y>
       <width>561</width>
-      <height>361</height>
+      <height>246</height>
      </rect>
     </property>
     <property name="maximumSize">
@@ -190,7 +190,7 @@
      <bool>false</bool>
     </property>
     <property name="rowCount">
-     <number>11</number>
+     <number>8</number>
     </property>
     <property name="columnCount">
      <number>8</number>
@@ -204,9 +204,6 @@
     <attribute name="verticalHeaderVisible">
      <bool>false</bool>
     </attribute>
-    <row/>
-    <row/>
-    <row/>
     <row/>
     <row/>
     <row/>
@@ -266,7 +263,7 @@
      <string>Day Split</string>
     </property>
    </widget>
-   <widget class="QFrame" name="frame">
+   <widget class="QFrame" name="energyFrame">
     <property name="geometry">
      <rect>
       <x>5</x>
@@ -332,7 +329,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="energyLabel">
      <property name="geometry">
       <rect>
        <x>5</x>
@@ -456,14 +453,17 @@
      <string>Interval</string>
     </property>
    </widget>
-   <widget class="QFrame" name="frame_2">
+   <widget class="QFrame" name="plotFrame">
     <property name="geometry">
      <rect>
       <x>5</x>
-      <y>350</y>
-      <width>131</width>
-      <height>221</height>
+      <y>465</y>
+      <width>371</width>
+      <height>131</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Plots of data from combined files. State plots are made for one battery only.</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -471,7 +471,7 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label_11">
+    <widget class="QLabel" name="plotLabel">
      <property name="geometry">
       <rect>
        <x>45</x>
@@ -493,8 +493,8 @@
     <widget class="QCheckBox" name="moduleCheckbox">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>175</y>
+       <x>120</x>
+       <y>100</y>
        <width>93</width>
        <height>22</height>
       </rect>
@@ -525,8 +525,8 @@
     <widget class="QPushButton" name="plotFileSelectButton">
      <property name="geometry">
       <rect>
-       <x>15</x>
-       <y>70</y>
+       <x>20</x>
+       <y>85</y>
        <width>91</width>
        <height>27</height>
       </rect>
@@ -541,8 +541,8 @@
     <widget class="QCheckBox" name="battery1Checkbox">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>100</y>
+       <x>120</x>
+       <y>25</y>
        <width>93</width>
        <height>22</height>
       </rect>
@@ -557,8 +557,8 @@
     <widget class="QCheckBox" name="battery3Checkbox">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>150</y>
+       <x>120</x>
+       <y>75</y>
        <width>93</width>
        <height>22</height>
       </rect>
@@ -573,8 +573,8 @@
     <widget class="QCheckBox" name="battery2Checkbox">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>125</y>
+       <x>120</x>
+       <y>50</y>
        <width>93</width>
        <height>22</height>
       </rect>
@@ -589,8 +589,8 @@
     <widget class="QCheckBox" name="temperaturePlotCheckbox">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>200</y>
+       <x>220</x>
+       <y>25</y>
        <width>111</width>
        <height>22</height>
       </rect>
@@ -690,13 +690,80 @@
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QFrame" name="faultFrame">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>350</y>
+      <width>131</width>
+      <height>106</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Analyse combined data file for instances where the charger is not allocated when it could be.</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="faultLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>106</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Fault Analysis</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="faultReportFileSelectButton">
+     <property name="geometry">
+      <rect>
+       <x>15</x>
+       <y>35</y>
+       <width>91</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the csv file to be plotted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>CSV File</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="errorMessageLabel">
+    <property name="geometry">
+     <rect>
+      <x>15</x>
+      <y>580</y>
+      <width>696</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>749</width>
+     <width>747</width>
      <height>27</height>
     </rect>
    </property>

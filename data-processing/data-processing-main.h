@@ -82,6 +82,7 @@ private slots:
     void on_battery2Checkbox_clicked();
     void on_battery3Checkbox_clicked();
     void on_statesPlotCheckbox_clicked();
+    void on_faultReportFileSelectButton_clicked();
 private:
 // User Interface object instance
     Ui::DataProcessingMainWindow DataProcessingMainUi;
