@@ -149,11 +149,11 @@ Limit is used to prevent charging from occurring in extreme heat. */
 /*--------------------------------------------------------------------------*/
 /* Battery default parameters */
 
-#define BATTERY_CAPACITY_1  54
-#define BATTERY_CAPACITY_2  54
-#define BATTERY_CAPACITY_3  54
+#define BATTERY_CAPACITY_1  100
+#define BATTERY_CAPACITY_2  100
+#define BATTERY_CAPACITY_3  100
 #define BATTERY_TYPE_1      wetT
-#define BATTERY_TYPE_2      wetT
+#define BATTERY_TYPE_2      gelT
 #define BATTERY_TYPE_3      wetT
 /*--------------------------------------------------------------------------*/
 /* Battery Monitoring State default triggers. */

@@ -89,8 +89,9 @@ static uint32_t lostCharacters; /* Number of characters lost due to queue full *
 /* FreeRTOS queues and intercommunication variables defined in Comms */
 extern xQueueHandle commsSendQueue, commsReceiveQueue, commsEmptySemaphore;
 
-/* Time variable needed when systick is the timer */
-static uint32_t timeCounter;
+/* Time variables needed when systick is the timer */
+static uint32_t secondsCount;
+static uint32_t millisecondsCount;
 
 /* This is provided in the FAT filesystem library */
 extern void disk_timerproc();
@@ -111,6 +112,8 @@ void prvSetupHardware(void)
     systickSetup();
     rtc_auto_awake(RCC_LSE, 0x7fff);
     iwdgSetup();
+    secondsCount = 0;
+    millisecondsCount = 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -597,21 +600,22 @@ static void adcSetup(void)
 /** @brief Systick Setup
 
 Setup SysTick Timer for 1 millisecond interrupts, also enables Systick and
-Systick-Interrupt
+Systick-Interrupt. This uses clock and tick rates defined in FreeRTOSConfig.h.
 */
 
 static void systickSetup()
 {
-    /* 72MHz / 8 => 9,000,000 counts per second */
+/* Set clock source to be the CPU clock prescaled by 8.
+for STM32F103 this is 72MHz / 8 => 9,000,000 counts per second */
     systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
 
-    /* 9000000/9000 = 1000 overflows per second - every 1ms one interrupt */
-    /* SysTick interrupt every N clock pulses: set reload to N-1 */
-    systick_set_reload(8999);
+/* 9000000/9000 = 1000 overflows per second - every 1ms one interrupt */
+/* SysTick interrupt every N clock pulses: set reload to N-1 */
+    systick_set_reload((configCPU_CLOCK_HZ/(8*configTICK_RATE_HZ)-1));
 
     systick_interrupt_enable();
 
-    /* Start counting. */
+/* Start counting. */
     systick_counter_enable();
 }
 /*--------------------------------------------------------------------------*/
@@ -691,45 +695,46 @@ uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *dataBlock, uint16_t size)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Read the Time
+/** @brief Read the Elapsed Time in Milliseconds
 
-@returns uint32_t Time value.
+@returns uint32_t Milliseconds counter value.
 */
 
-uint32_t getTimeCounter()
+uint32_t getMilliSecondsCount()
+{
+    return millisecondsCount;
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Read the Time
+
+@returns uint32_t seconds counter value.
+*/
+
+uint32_t getSecondsCount()
 {
 #if (RTC_SOURCE == RTC)
     return rtc_get_counter_val();
 #else
-    return timeCounter;
+    return secondsCount;
 #endif
 }
 
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Time
 
-@param[in] time: uint32_t Time value to set.
+@param[in] time: uint32_t seconds counter value to set.
 */
 
-void setTimeCounter(uint32_t time)
+void setSecondsCount(uint32_t time)
 {
 #if (RTC_SOURCE == RTC)
     rtc_set_counter_val(time);
 #else
-    timeCounter = time;;
+    secondsCount = time;
 #endif
 }
 
-/*--------------------------------------------------------------------------*/
-/** @brief Update the time counter value
-
-This is called from the systick ISR every second if it is used as a RTC.
-*/
-
-void updateTimeCount(void)
-{
-    timeCounter++;
-}
 /*--------------------------------------------------------------------------*/
                 /* ISRs */
 /*--------------------------------------------------------------------------*/
@@ -844,7 +849,7 @@ void pend_sv_handler(void)
 This provides a link to the FreeRTOS systick interrupt handler.
 
 Systick is setup in FreeRTOS according to the tick rate specified in
-FreeRTOSConfig.h. That rate is set at 100Hz.
+FreeRTOSConfig.h.
 
 This also updates the status of any inserted SD card every 10 ms.
 
@@ -852,23 +857,12 @@ Can be used to provide a RTC.
 */
 void sys_tick_handler(void)
 {
+    millisecondsCount++;
+/* SD card status update. */
+    if ((millisecondsCount % (configTICK_RATE_HZ/100)) == 0) disk_timerproc();
 
-    static uint16_t timer=0;
-    timer++;
-    if (timer >= 10)
-    {
-        timer=0;
-        disk_timerproc();
-    }
-
-/* updated every 1s if systick is used for real-time clock. */
-    static uint16_t cnttime=0;
-    cnttime++;
-    if (cnttime >= 100)
-    {
-        cnttime = 0;
-        updateTimeCount();
-    }
+/* updated every second if systick is used for the real-time clock. */
+    if ((millisecondsCount % configTICK_RATE_HZ) == 0) secondsCount++;
     xPortSysTickHandler();
 }
 

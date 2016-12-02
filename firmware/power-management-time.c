@@ -50,7 +50,7 @@ Convert the global time to an ISO 8601 string.
 
 void putTimeToString(char* timeString)
 {
-    time_t currentTime = (time_t)getTimeCounter();
+    time_t currentTime = (time_t)getSecondsCount();
     struct tm *rtc = localtime(&currentTime);
 //    strftime(timeString, sizeof timeString, "%FT%TZ", rtc);
     char buffer[10];
@@ -104,7 +104,7 @@ void setTimeFromString(char* timeString)
     for (i=0; i<2; i++) buffer[i] = timeString[i+17];
     newTime.tm_sec = asciiToInt(buffer);
 
-    setTimeCounter((uint32_t)mktime(&newTime));
+    setSecondsCount((uint32_t)mktime(&newTime));
 }
 
 /**@}*/

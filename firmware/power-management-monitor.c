@@ -139,7 +139,8 @@ least two hours. */
         {
 /* Keep aside to restore after calibration. */
             uint8_t switchSettings = getSwitchControlBits();
-            int16_t results[NUM_TESTS][NUM_IFS];    /* result for all 7 tests */
+/* Results for all 7 tests */
+            int16_t results[NUM_TESTS][NUM_IFS];
             uint8_t test;
             uint8_t i;
 
@@ -176,8 +177,8 @@ some currents. */
                 dataMessageSendLowPriority("pQ",0,test);
             }
 
-/* Estimate the offsets only when they are less than a threshold. Find the lowest
-value for each interface. */
+/* Estimate the offsets only when they are less than a threshold. Find the
+lowest value for each interface. */
             for (i=0; i<NUM_IFS; i++)
             {
                 currentOffsets.data[i] = OFFSET_START_VALUE;
@@ -269,10 +270,10 @@ via the File module, and transmitted via the Communications module. */
 /* Send out battery terminal measurements. */
             id[1] = 'B';
             dataMessageSendLowPriority(id,
-                        getBatteryCurrent(i)-currentOffsets.data[i],
+                        getBatteryCurrent(i),
                         getBatteryVoltage(i));
             recordDual(id,
-                        getBatteryCurrent(i)-currentOffsets.data[i],
+                        getBatteryCurrent(i),
                         getBatteryVoltage(i));
 /* Send out battery state of charge. */
             id[1] = 'C';
@@ -293,10 +294,10 @@ via the File module, and transmitted via the Communications module. */
         {
             id[2] = '1'+i;
             dataMessageSendLowPriority(id,
-                        getLoadCurrent(i)-currentOffsets.data[NUM_BATS+i],
+                        getLoadCurrent(i)-getLoadCurrentOffset(i),
                         getLoadVoltage(i));
             recordDual(id,
-                        getLoadCurrent(i)-currentOffsets.data[NUM_BATS+i],
+                        getLoadCurrent(i)-getLoadCurrentOffset(i),
                         getLoadVoltage(i));
         }
 /* Send out panel terminal measurements. */
@@ -305,10 +306,10 @@ via the File module, and transmitted via the Communications module. */
         {
             id[2] = '1'+i;
             dataMessageSendLowPriority(id,
-                        getPanelCurrent(i)-currentOffsets.data[NUM_BATS+NUM_LOADS+i],
+                        getPanelCurrent(i)-getPanelCurrentOffset(i),
                         getPanelVoltage(i));
             recordDual(id,
-                        getPanelCurrent(i)-currentOffsets.data[NUM_BATS+NUM_LOADS+i],
+                        getPanelCurrent(i)-getPanelCurrentOffset(i),
                         getPanelVoltage(i));
         }
 /* Send out temperature measurement. */
@@ -374,16 +375,6 @@ the SoC. The maximum charge is the battery capacity in ampere seconds
                 if ((uint32_t)batteryCharge[i] > chargeMax)
                     batteryCharge[i] = chargeMax;
                 batterySoC[i] = batteryCharge[i]/(getBatteryCapacity(i)*36);
-commsPrintString("dD");
-commsPrintString(",");
-commsPrintInt(getBatteryCurrent(i)-currentOffsets.data[i]);
-commsPrintString(",");
-commsPrintInt(accumulatedCharge);
-commsPrintString(",");
-commsPrintInt(batteryCharge);
-commsPrintString(",");
-commsPrintInt(batterySoC);
-commsPrintString("\r\n");
 /* Collect the battery charge fill state estimations. */
                 uint16_t batteryAbsVoltage = abs(getBatteryVoltage(i));
                 batteryFillState[i] = normalF;
@@ -912,7 +903,8 @@ static void initGlobals(void)
     }
     batteryUnderLoad = 0;
     batteryUnderCharge = 0;
-/* These will be in FLASH, or set to zero if not */
+/* Load the currrent offsets to the local structure. These will be in FLASH,
+or will be set to zero if not. */
     for (i=0; i<NUM_IFS; i++) currentOffsets.data[i] = getCurrentOffset(i);
 }
 
@@ -968,6 +960,30 @@ int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type)
 int16_t getBatteryCurrentOffset(int battery)
 {
     return currentOffsets.dataArray.battery[battery];
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Access the Load Current Offset
+
+@param[in] battery: int 0..NUM_LOADS-1
+@return int16_t battery current offset.
+*/
+
+int16_t getLoadCurrentOffset(int load)
+{
+    return currentOffsets.dataArray.load[load];
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Access the Panel Current Offset
+
+@param[in] battery: int 0..NUM_PANELS-1
+@return int16_t battery current offset.
+*/
+
+int16_t getPanelCurrentOffset(int panel)
+{
+    return currentOffsets.dataArray.panel[panel];
 }
 
 /*--------------------------------------------------------------------------*/

@@ -75,6 +75,7 @@ static int16_t lastBatteryVoltage[NUM_BATS];
 static int16_t batteryResistanceAv[NUM_BATS];
 static int32_t accumulatedBatteryCharge[NUM_BATS];
 static int16_t temperature;
+static uint32_t lastCycleTimeMs;
 static union InterfaceGroup currents;
 static union InterfaceGroup voltages;
 
@@ -143,7 +144,7 @@ This averages out variations due to PWM provided they are not high frequency. */
             while (adcEOC() == 0) taskYIELD();
 /**
 <li> Sum over the sample set with scaling and offset for the interfaces and
-temperature */
+temperature. */
             for (j = 0; j < N_CONV-1; j+=2)
             {
                 av[j] += adcValue(j);
@@ -154,7 +155,8 @@ temperature */
 
 /**
 <li> Compute averages from the burst; scale and offset to the real quantities;
-and reset the averages for the next cycle. */
+and reset the averages for the next cycle. These are stored in a local
+InterfaceGroup structure that can be accessed externally through an API. */
         for (i=0; i<NUM_IFS; i++)
         {
             uint8_t k = i+i;
@@ -166,19 +168,18 @@ and reset the averages for the next cycle. */
         temperature = ((av[12]/N_SAMPLES-TEMPERATURE_OFFSET)*TEMPERATURE_SCALE)/4096;
         av[12] = 0;
 
+/* Compute time elapsed since last reading. */
+        uint32_t currentTimeMs = getMilliSecondsCount();
+        uint32_t elapsedTimeMs = currentTimeMs - lastCycleTimeMs;
         for (i=0; i<NUM_BATS; i++)
         {
 /**
 <li> Compute the batteries' charge state by integration of current flow over
 time. Currents are in amperes (times 256). Divide by the measurement interval in
-seconds so that charge is in Coulombs (times 256). Limit charge to battery's
-capacity. Sign is determined by the fact that positive current flows out of the
-batteries. */
-            int32_t batteryCurrent = currents.dataArray.battery[i]-
-                                        getBatteryCurrentOffset(i);
-            accumulatedBatteryCharge[i] -= batteryCurrent*
-                    (int32_t)(1000/(portTICK_RATE_MS*getMeasurementDelay()));
-
+seconds so that charge is in Coulombs (times 256). Sign is determined by the
+fact that positive current flows out of the batteries. */
+            int32_t batteryCurrent = getBatteryCurrent(i);
+            accumulatedBatteryCharge[i] -= (int32_t)(batteryCurrent*elapsedTimeMs)/1000;
 /**
 <li> Check if a significant change in battery current occurred (more than about
 400mA) and use this to estimate the resistance of the battery.
@@ -187,7 +188,7 @@ The algorithm computes the averaged voltage and current steps and divides
 them. This automatically weights the contributions of larger steps to
 imcrease their overall effect over the smaller steps. The voltage and current
 averaged are linear unbiassed estimators. */
-            int32_t batteryVoltage = voltages.dataArray.battery[i];
+            int32_t batteryVoltage = getBatteryVoltage(i);
             int32_t voltageStep = abs(batteryVoltage-lastBatteryVoltage[i]);
             int32_t currentStep = abs(batteryCurrent-lastBatteryCurrent[i]);
             if (currentStep > 100)
@@ -211,6 +212,7 @@ Seed the filter with the most recent measurements (rather than zero)
             lastBatteryVoltage[i] = batteryVoltage;
             lastBatteryCurrent[i] = batteryCurrent;
         }
+        lastCycleTimeMs = currentTimeMs;
     }
 }
 /*--------------------------------------------------------------------------*/
@@ -227,6 +229,7 @@ static void initGlobals(void)
         batteryResistanceAv[i] = 0;
         accumulatedBatteryCharge[i] = 0;
     }
+    lastCycleTimeMs = 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -265,22 +268,24 @@ int16_t getBatteryAccumulatedCharge(int battery)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Access the Measured Battery Current
+/** @brief Access the Measured Battery Current less offsets
+
+The battery current returned has the offsets removed.
 
 @param[in] battery: 0..NUM_BATS-1
-@returns int16_t Battery Current times 256
+@returns int16_t Normalised battery current times 256
 */
 
 int16_t getBatteryCurrent(int battery)
 {
-    return currents.dataArray.battery[battery];
+    return currents.dataArray.battery[battery]-getBatteryCurrentOffset(battery);
 }
 
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Measured Battery Voltage
 
 @param[in] battery: 0..NUM_BATS-1
-@returns int16_t Battery Voltage times 256
+@returns int16_t Battery voltage times 256
 */
 
 int16_t getBatteryVoltage(int battery)

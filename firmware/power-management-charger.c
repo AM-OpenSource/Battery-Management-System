@@ -301,7 +301,7 @@ Compute the peak current from duty cycle (assumes current goes from 0 to a peak)
 then if the peak is greater than the battery's current limit, reduce the
 maximum duty cycle. Limit the duty cycle to this.
 This is done on the directly measured current for rapid response. */
-            int16_t current = getBatteryCurrent(index)-getBatteryCurrentOffset(index);
+            int16_t current = getBatteryCurrent(index);
             int32_t currentPeak = -((int32_t)current*100)/dutyCycle[index];
             if (currentPeak > getBulkCurrentLimit(index))
                 dutyCycleMax = getBulkCurrentLimit(index)*256/currentPeak;
@@ -517,7 +517,7 @@ will be ignored.
 
 void calculateAverageMeasures(uint8_t i)
 {
-    int16_t current = getBatteryCurrent(i)-getBatteryCurrentOffset(i);
+    int16_t current = getBatteryCurrent(i);
     int16_t voltage = getBatteryVoltage(i);
 /* Seed the filter with the most recent measurement (rather than zero) */
     if (voltageAv[i] == 0) voltageAv[i] = voltage;

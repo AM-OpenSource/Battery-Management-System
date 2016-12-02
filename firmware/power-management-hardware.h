@@ -69,8 +69,9 @@ void pwmSetDutyCycle(uint16_t dutyCycle);
 void commsEnableTxInterrupt(uint8_t enable);
 void flashReadData(uint32_t *flashBlock, uint8_t *data, uint16_t size);
 uint32_t flashWriteData(uint32_t *flashBlock, uint8_t *data, uint16_t size);
-uint32_t getTimeCounter();
-void setTimeCounter(uint32_t time);
+uint32_t getMilliSecondsCount();
+uint32_t getSecondsCount();
+void setSecondsCount(uint32_t time);
 void updateTimeCount(void);
 void iwdgReset(void);
 

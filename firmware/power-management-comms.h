@@ -43,10 +43,6 @@ Initial 29 September 2013
 /*--------------------------------------------------------------------------*/
 void prvCommsTask(void *pvParameters);
 void initComms(void);
-void commsPrintInt(int32_t value);
-void commsPrintHex(uint32_t value);
-void commsPrintString(char *ch);
-void commsPrintChar(char *ch);
 void dataMessageSend(char* ident, int32_t parm1, int32_t parm2);
 void dataMessageSendLowPriority(char* ident, int32_t param1, int32_t param2);
 void sendResponse(char* ident, int32_t parameter);
