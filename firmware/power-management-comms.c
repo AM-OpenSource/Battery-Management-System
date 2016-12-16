@@ -341,7 +341,7 @@ settings. */
                 break;
             }
 /**
-<li> <b>c-, c+</b> c-, c+ Turn communications sending on or off */
+<li> <b>c-, c+</b> Turn communications sending on or off */
         case 'c':
             {
                 if (line[2] == '-') configData.config.enableSend = false;

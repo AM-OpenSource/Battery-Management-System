@@ -8,9 +8,11 @@ The remaining files adapt the library to the hardware being used, to FreeRTOS
 and to libopencm3. Some changes to these may be necessary if the ChaN FAT API
 changes.
 
-Currently the makefile calls on sd_spi_loc3_stm32_freertos.c
+Currently the makefile calls on sd_spi_loc3_stm32_freertos.c. The other files
+are older attempts that have been retained for possible future reference
+but are outdated.
 
 More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-software.html).
 
-(c) K. Sarkies 22/11/2016
+(c) K. Sarkies 10/12/2016
 

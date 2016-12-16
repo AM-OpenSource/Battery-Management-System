@@ -4,7 +4,7 @@ Battery Management System Firmware
 Version: 1.0.0
 
 The firmware is written for an STM32F103 ARM Cortex M3 microcontroller and uses
-specific hardware published here.
+specific hardware published along with this firmware.
 
 The firmware uses libopencm3 for hardware drivers, FreeRTOS for task management
 and ChaN FatFs for managing the local storage filesystem, along with an
@@ -40,10 +40,10 @@ reported in the literature, providing efficient and independent charging of
 multiple batteries from an uncontrolled variable power source such as that found
 in solar and aeolian systems.
 
-Compilation is done on Linux using The arm-none-eabi compiler package and by
+Compilation is done on Linux using the arm-none-eabi compiler package and by
 command line "make" using a makefile. The makefile needs to be modified to suit
-the installation of libraries: change the macro LIBRARY_DIR for libopencm3, and
-FREERTOS_DIR for FreeRTOS.
+the installation of libraries: change the macro LIBRARY_DIR for libopencm3,
+FREERTOS_DIR for FreeRTOS and FATFSDIR for ChaN FAT.
 
 The ChaN FAT library is provided as it has inbuilt modifications to allow use
 with libopencm3. If ChaN FAT is upgraded, the file sd_spi_loc3_stm32_freertos.c
@@ -51,15 +51,13 @@ must be retained (or adapted as necessary).
 
 More information is available on [Jiggerjuice](http://www.jiggerjuice.info/electronics/projects/solarbms/solarbms-software.html)
 
-(c) K. Sarkies 24/05/2016
+(c) K. Sarkies 10/12/2016
 
 BUGS
 
 1. The file directory list command results in very slow transmission, about one
    entry per second.
 2. File dates are sometimes wrong.
-3. Auto tracker often makes odd decisions, such as placing load on a low battery
-   or charging a battery of higher charge.
 
 TODO
 

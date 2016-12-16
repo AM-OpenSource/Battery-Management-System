@@ -67,6 +67,7 @@ so must be commented out for normal use. */
 #include "queue.h"
 #include "semphr.h"
 
+/* Globals */
 extern uint32_t __configBlockStart;
 extern uint32_t __configBlockEnd;
 
@@ -618,6 +619,7 @@ for STM32F103 this is 72MHz / 8 => 9,000,000 counts per second */
 /* Start counting. */
     systick_counter_enable();
 }
+
 /*--------------------------------------------------------------------------*/
 /** @brief Read a data block from Flash memory
 

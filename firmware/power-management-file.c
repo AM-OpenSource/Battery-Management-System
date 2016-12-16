@@ -388,7 +388,7 @@ first) and null terminated filename */
             }
             break;
         }
-/* Return the open status, name and size of open files. */
+/* Return the file handles and names of open write and read files. */
         case 'S':
         {
             xQueueSendToBack(fileReceiveQueue,&writeFileHandle,FILE_SEND_TIMEOUT);

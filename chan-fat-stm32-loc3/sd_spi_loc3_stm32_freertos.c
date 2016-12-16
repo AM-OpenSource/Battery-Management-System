@@ -92,7 +92,7 @@ typedef bool BOOL;
 
 #ifdef STM32_SD_USE_DMA
 // #warning "Information only: using DMA"
-#pragma message "*** Using DMA ***"
+#pragma message "*** Using DMA for MMC Card Access ***"
 #endif
 
 /* Definitions for MMC/SDC command */
@@ -621,7 +621,7 @@ Can be done with DMA or programmed.
 This is in response to a previously sent read command.
 
 @param *buff: BYTE 512 byte data block to store received data 
-@param btr: UINT Byte count (must be multiple of 4)
+@param numBytes: UINT Byte count (must be multiple of 4)
 @returns BOOL valid token received.
 */
 
@@ -929,7 +929,6 @@ DRESULT disk_read(BYTE drv,BYTE *buff,DWORD sector,UINT count)
         release_spi();
         if (count > 0) res = RES_ERROR;
     }
-//    if (res != RES_OK) dataMessageSend("DREAD",res,error);
 
     return res;
 }
