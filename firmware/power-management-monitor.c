@@ -656,9 +656,8 @@ battery. If no suitable battery is found leave the charger unallocated. */
                     decisionStatus |= 0x01;
 /**
 Work through the batteries in fill state order to get the weakest one that
-is not in float or rest. Make the change only if the battery fill state is
-weak or critical and the battery under charge is normal. This avoids rapid
-switching in certain unusual cases. */
+is not in float or rest. Leave a hysteresis value of 5% on the SoC to prevent
+thrashing. */
                     for (i=0; i<numBats; i++)
                     {
                         uint8_t battery = batteryFillStateSort[numBats-i-1];
@@ -667,8 +666,8 @@ switching in certain unusual cases. */
                         bool restPhase = (getBatteryChargingPhase(battery-1) == restC);
                         if (!(floatPhase || restPhase))
                         {
-                            if ((batteryFillState[battery-1] != normalF) &&
-                                (batteryFillState[batteryUnderCharge-1] == normalF))
+                            if ((batterySoC[battery-1] + SoC_HYSTERESIS) <
+                                batterySoC[batteryUnderCharge-1])
                             {
                                 decisionStatus |= 0x02;
                                 batteryUnderCharge = battery;
@@ -697,8 +696,16 @@ critical, set to the highest SoC unallocated battery ... */
                         batteryUnderLoad = batteryFillStateSort[i];
                         if (batteryUnderLoad != longestBattery)
                         {
-                            if (!(getMonitorStrategy() & SEPARATE_LOAD)) break;
-                            if (batteryUnderLoad != chargingBattery) break;
+                            if (!(getMonitorStrategy() & SEPARATE_LOAD))
+                            {
+                                decisionStatus |= 0x20;
+                                break;
+                            }
+                            if (batteryUnderLoad != chargingBattery)
+                            {
+                                decisionStatus |= 0x40;
+                                break;
+                            }
                         }
                     }
 /**
@@ -781,13 +788,23 @@ the point at which charging is effective. */
                 {
                     batteryOpState[i] = chargingO;
                 }
+
+/**
+<ol>
+<li> If the battery has reached rest phase and the SoC is less than 70%, set to
+70%. This is a reasonable guess for moderate charge currents. */
+            if ((getBatteryChargingPhase(i) == restC) && (batterySoC[i] < REST_SoC))
+            {
+                setBatterySoC(i,REST_SoC);
+            }
+
 /**
 <ol>
 <li> If the operational state of a battery changes from isolated, update the SoC
-if it has been isolated for over 2 hours */
+if it has been isolated for over 4 hours */
                 if ((lastOpState == isolatedO) &&
                     (batteryOpState[i] != isolatedO) &&
-                    (batteryIsolationTime[i] > (uint32_t)(2*3600*1024)/getMonitorDelay()))
+                    (batteryIsolationTime[i] > (uint32_t)(4*3600*1024)/getMonitorDelay()))
                 {
                     setBatterySoC(i,computeSoC(getBatteryVoltage(i),
                                                getTemperature(),getBatteryType(i)));

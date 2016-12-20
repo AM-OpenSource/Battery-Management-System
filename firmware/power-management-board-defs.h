@@ -27,8 +27,8 @@ Initial 23 September 2013
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BOARD_H_
-#define BOARD_H_
+#ifndef POWER_MANAGEMENT_BOARD_H_
+#define POWER_MANAGEMENT_BOARD_H_
 
 /* A/D Converter Channels */
 
@@ -64,6 +64,8 @@ Initial 23 September 2013
 #define ADC_CHANNEL_LOAD2_VOLTAGE       13
 #define ADC_CHANNEL_TEMPERATURE         14
 
+#else
+#error "unsupported board"
 #endif
 
 /* Controls and Status Signals */
@@ -134,6 +136,8 @@ Initial 23 September 2013
 #define LOAD2_STATUS_PORT               GPIOB
 #define LOAD2_STATUS_SHIFT              10
 
+#else
+#error "unsupported board"
 #endif
 
 /* GPIO Port Settings */
@@ -162,6 +166,8 @@ Initial 23 September 2013
 #define PB_DIGITAL_INPUTS               GPIO0 | GPIO1 | GPIO2 | GPIO3 | GPIO4 |\
                                                 GPIO5 | GPIO6 | GPIO7 | GPIO8 |\
                                                 GPIO9 | GPIO10 | GPIO11
+#else
+#error "unsupported board"
 #endif
 
 #endif

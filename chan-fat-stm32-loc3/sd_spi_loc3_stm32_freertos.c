@@ -380,11 +380,11 @@ data byte or a response to a previously sent command.
 
 static BYTE rcvr_spi(void)
 {
-    return stm32_spi_rw(0xff);	    /* Dummy clock (force DO high) */
+    return stm32_spi_rw(0xFF);	    /* Dummy clock (force DO high) */
 }
 
 /* Alternative macro to receive data fast */
-#define rcvr_spi_m(dst)  *(dst)=stm32_spi_rw(0xff)
+#define rcvr_spi_m(dst)  *(dst)=stm32_spi_rw(0xFF)
 
 /*---------------------------------------------------------------------------*/
 /** @brief Wait for the Card to become Ready
@@ -959,7 +959,7 @@ DRESULT disk_write(BYTE drv,const BYTE *buff,DWORD sector,UINT count)
     {
         res = RES_NOTRDY;
     }
-    else if (Stat & STA_PROTECT)/* Write protoected */
+    else if (Stat & STA_PROTECT)/* Write protected */
     {
         res = RES_WRPRT;
     }
