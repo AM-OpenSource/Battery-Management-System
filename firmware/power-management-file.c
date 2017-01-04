@@ -196,7 +196,7 @@ static void parseFileCommand(char *line)
 /* Skip to the end of the file to append. */
                     if (fileStatus == FR_OK)
                         fileStatus = f_lseek(&file[fileHandle], f_size(file));
-                    else
+                    if (fileStatus != FR_OK)
                     {
                         deleteFileHandle(fileHandle);
                         fileHandle = 0xFF;

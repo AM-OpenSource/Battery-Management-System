@@ -575,7 +575,7 @@ static void power_on (void)
 
     spi_enable(SPI_SD);
 
-    gpio_clear(GPIOB, GPIO12);
+    SELECT();
 
 /* drain SPI */
     while (!(SPI_SR(SPI_SD) & SPI_SR_TXE));
