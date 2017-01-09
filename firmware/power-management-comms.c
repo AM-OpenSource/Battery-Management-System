@@ -657,8 +657,16 @@ file handle is a two character integer. */
                     xQueueReceive(fileReceiveQueue,&fileStatus,portMAX_DELAY);
                     if (fileStatus == FR_OK)
                     {
-                        if (writeFileHandle == fileHandle) writeFileHandle = 0xFF;
-                        else if (readFileHandle == fileHandle) readFileHandle = 0xFF;
+                        if (writeFileHandle == fileHandle)
+                        {
+                            writeFileHandle = 0xFF;
+                            writeFileName[0] = 0;
+                        }
+                        else if (readFileHandle == fileHandle)
+                        {
+                            readFileHandle = 0xFF;
+                            readFileName[0] = 0;
+                        }
                     }
                     xSemaphoreGive(fileSendSemaphore);
                 }
@@ -871,7 +879,8 @@ no further entries found in the directory, then an empty string is sent back. */
             }
 /**
 <li> <b>s</b> Send a status message containing: software switches
-(configData.config.recording), names of open files. */
+(configData.config.recording), names of open files, with open write filename
+first followed by read filename, or blank if files are not open. */
             case 's':
             {
                 if (! xSemaphoreTake(commsSendSemaphore,COMMS_SEND_TIMEOUT))

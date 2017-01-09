@@ -543,7 +543,7 @@ called after each transfer to reset the memory buffer to the beginning.
 
 static void dmaAdcSetup(void)
 {
-    /* Enable DMA1 Clock */
+/* Enable DMA1 Clock */
     rcc_periph_clock_enable(RCC_DMA1);
     dma_channel_reset(DMA1,DMA_CHANNEL1);
     dma_set_priority(DMA1,DMA_CHANNEL1,DMA_CCR_PL_LOW);
@@ -569,16 +569,16 @@ channels once through then stops. DMA enabled to collect data.
 
 static void adcSetup(void)
 {
-    /* Enable clocks for ADCs */
+/* Enable clocks for ADCs */
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_ADC1);
 /* ADC clock should be maximum 14MHz, so divide by 8 from 72MHz. */
     rcc_set_adcpre(RCC_CFGR_ADCPRE_PCLK2_DIV8);
     nvic_enable_irq(NVIC_ADC1_2_IRQ);
-    /* Make sure the ADC doesn't run during config. */
+/* Make sure the ADC doesn't run during config. */
     adc_power_off(ADC1);
-    /* Configure ADC1 for multiple conversion. */
+/* Configure ADC1 for multiple conversion. */
     adc_enable_scan_mode(ADC1);
     adc_set_single_conversion_mode(ADC1);
     adc_enable_external_trigger_regular(ADC1, ADC_CR2_EXTSEL_SWSTART);

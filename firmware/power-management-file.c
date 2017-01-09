@@ -504,8 +504,8 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param ident: char* an identifier string.
-@param  param1: int32_t first parameter.
+@param[in] char* ident: an identifier string.
+@param[in] int32_t param1: first parameter.
 @returns uint8_t file status.
 */
 
@@ -547,9 +547,9 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param ident: char* an identifier string.
-@param  param1: int32_t first parameter.
-@param  param2: int32_t second parameter.
+@param[in] char* ident: an identifier string.
+@param[in] int32_t param1: first parameter.
+@param[in] int32_t param2: second parameter.
 @returns uint8_t file status.
 */
 
@@ -594,8 +594,8 @@ The command is aborted in its entirety if another task is blocking access to
 the filesystem. It will return an access denied status if a status byte is not
 returned.
 
-@param ident: char* an identifier string.
-@param  string: char string to record.
+@param[in] char* ident: an identifier string.
+@param[in] char* string: string to record.
 @returns uint8_t file status.
 */
 
