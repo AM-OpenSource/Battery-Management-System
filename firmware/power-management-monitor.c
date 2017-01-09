@@ -666,7 +666,8 @@ thrashing. */
                         bool restPhase = (getBatteryChargingPhase(battery-1) == restC);
                         if (!(floatPhase || restPhase))
                         {
-                            if ((batterySoC[battery-1] + SoC_HYSTERESIS) <
+                            if ((batteryUnderCharge == 0) ||
+                                (batterySoC[battery-1] + SoC_HYSTERESIS) <
                                 batterySoC[batteryUnderCharge-1])
                             {
                                 decisionStatus |= 0x02;
