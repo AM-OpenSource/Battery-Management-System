@@ -88,23 +88,12 @@ extern union ConfigGroup configData;
 static uint8_t monitorWatchdogCount;
 static bool calibrate;
 /* All current, voltage, SoC, charge variables times 256. */
-static uint16_t batteryCurrentSteady[NUM_BATS];
-static battery_Fl_States batteryFillState[NUM_BATS];
-static battery_Op_States batteryOpState[NUM_BATS];
-static battery_Hl_States batteryHealthState[NUM_BATS];
+static struct batteryStates battery[NUM_BATS];
 static union InterfaceGroup currentOffsets;
 static union InterfaceGroup currents;
 static union InterfaceGroup voltages;
-static int16_t lastbatteryCurrent[NUM_BATS];
-static int16_t lastbatteryVoltage[NUM_BATS];
 static uint8_t batteryUnderCharge;
 static uint8_t batteryUnderLoad;
-/* State of Charge is in percentage (times 256) */
-static uint16_t batterySoC[NUM_BATS];
-/* Battery charge is in Coulombs (times 256) */
-static int32_t batteryCharge[NUM_BATS];
-/* Time that a battery is in the isolation state */
-static uint32_t batteryIsolationTime[NUM_BATS];
 
 /*--------------------------------------------------------------------------*/
 /** @brief <b>Monitoring Task</b>
@@ -166,7 +155,7 @@ some currents. */
                 {
                     if (((getIndicators() >> 2*i) & 0x02) == 0)
                     {
-                        batteryHealthState[i] = missingH;
+                        battery[i].healthState = missingH;
                         setBatterySoC(i,0);
                     }
                 }
@@ -207,7 +196,7 @@ quiescent current */
             int16_t quiescentCurrent = -100;
             for (i=0; i<NUM_BATS; i++)
             {
-                if (batteryHealthState[i] != missingH)
+                if (battery[i].healthState != missingH)
                 {
                     for (test=0; test<NUM_TESTS; test++)
                     {
@@ -231,13 +220,13 @@ accurate estimate of SoC. */
 /* Zero counters, and reset battery states */
             for (i=0; i<NUM_BATS; i++)
             {
-                if (batteryHealthState[i] != missingH)
+                if (battery[i].healthState != missingH)
                 {
                     setBatterySoC(i,computeSoC(getBatteryVoltage(i),
                                                getTemperature(),getBatteryType(i)));
-                    batteryCurrentSteady[i] = 0;
-                    batteryIsolationTime[i] = 0;
-                    batteryOpState[i] = isolatedO;
+                    battery[i].currentSteady = 0;
+                    battery[i].isolationTime = 0;
+                    battery[i].opState = isolatedO;
                 }
             }
             batteryUnderLoad = 0;
@@ -277,13 +266,13 @@ via the File module, and transmitted via the Communications module. */
                         getBatteryVoltage(i));
 /* Send out battery state of charge. */
             id[1] = 'C';
-            sendResponseLowPriority(id,batterySoC[i]);
-            recordSingle(id,batterySoC[i]);
+            sendResponseLowPriority(id,battery[i].SoC);
+            recordSingle(id,battery[i].SoC);
 /* Send out battery operational, fill, charging and health status indication. */
-            uint16_t states = (batteryOpState[i] & 0x03) |
-                             ((batteryFillState[i] & 0x03) << 2) |
+            uint16_t states = (battery[i].opState & 0x03) |
+                             ((battery[i].fillState & 0x03) << 2) |
                              ((getBatteryChargingPhase(i) & 0x03) << 4) |
-                             ((batteryHealthState[i] & 0x03) << 6);
+                             ((battery[i].healthState & 0x03) << 6);
             id[1] = 'O';
             sendResponseLowPriority(id,states);
             recordSingle(id,states);
@@ -343,10 +332,10 @@ nature of the circuitry, so any existing missing battery status is not
 removed here; this must be done externally. */
         for (i=0; i<NUM_BATS; i++)
         {
-            if ((batteryHealthState[i] == missingH) || 
+            if ((battery[i].healthState == missingH) || 
                 ((getIndicators() >> 2*i) & 0x02) == 0)
             {
-                batteryHealthState[i] = missingH;
+                battery[i].healthState = missingH;
                 setBatterySoC(i,0);
                 if (batteryUnderLoad == i+1)
                     batteryUnderLoad = 0;
@@ -358,32 +347,32 @@ removed here; this must be done externally. */
         uint8_t numBats = NUM_BATS;
         for (i=0; i<NUM_BATS; i++)
         {
-            if (batteryHealthState[i] == missingH) numBats--;
+            if (battery[i].healthState == missingH) numBats--;
         }
         for (i=0; i<NUM_BATS; i++)
         {
-            if (batteryHealthState[i] != missingH)
+            if (battery[i].healthState != missingH)
             {
 /**
 <li> Access charge accumulated for each battery since the last time, and update
 the SoC. The maximum charge is the battery capacity in ampere seconds
 (coulombs). */
                 int16_t accumulatedCharge = getBatteryAccumulatedCharge(i);
-                batteryCharge[i] += accumulatedCharge;
+                battery[i].charge += accumulatedCharge;
                 uint32_t chargeMax = getBatteryCapacity(i)*3600*256;
-                if (batteryCharge[i] < 0) batteryCharge[i] = 0;
-                if ((uint32_t)batteryCharge[i] > chargeMax)
-                    batteryCharge[i] = chargeMax;
-                batterySoC[i] = batteryCharge[i]/(getBatteryCapacity(i)*36);
+                if (battery[i].charge < 0) battery[i].charge = 0;
+                if ((uint32_t)battery[i].charge > chargeMax)
+                    battery[i].charge = chargeMax;
+                battery[i].SoC = battery[i].charge/(getBatteryCapacity(i)*36);
 /* Collect the battery charge fill state estimations. */
                 uint16_t batteryAbsVoltage = abs(getBatteryVoltage(i));
-                batteryFillState[i] = normalF;
+                battery[i].fillState = normalF;
                 if ((batteryAbsVoltage < configData.config.lowVoltage) ||
-                    (batterySoC[i] < configData.config.lowSoC))
-                    batteryFillState[i] = lowF;
+                    (battery[i].SoC < configData.config.lowSoC))
+                    battery[i].fillState = lowF;
                 else if ((batteryAbsVoltage < configData.config.criticalVoltage) ||
-                         (batterySoC[i] < configData.config.criticalSoC))
-                    batteryFillState[i] = criticalF;
+                         (battery[i].SoC < configData.config.criticalSoC))
+                    battery[i].fillState = criticalF;
             }
         }
 /**
@@ -397,8 +386,8 @@ to the start of the list and the lowest at the end. */
         {
             for (k=0; k<NUM_BATS-i-1; k++)
             {
-              if (batterySoC[batteryFillStateSort[k]-1] <
-                  batterySoC[batteryFillStateSort[k+1]-1])
+              if (battery[batteryFillStateSort[k]-1].SoC <
+                  battery[batteryFillStateSort[k+1]-1].SoC)
               {
                 temp = batteryFillStateSort[k];
                 batteryFillStateSort[k] = batteryFillStateSort[k+1];
@@ -414,16 +403,16 @@ to the start of the list and the lowest at the end. */
 //        uint32_t shortestTime = 0xFFFFFFFF;
         for (i=0; i<NUM_BATS; i++)
         {
-            if (batteryHealthState[i] != missingH)
+            if (battery[i].healthState != missingH)
             {
-                if (batteryIsolationTime[i] > longestTime)
+                if (battery[i].isolationTime > longestTime)
                 {
-                    longestTime = batteryIsolationTime[i];
+                    longestTime = battery[i].isolationTime;
                     longestBattery = i+1;
                 }
-/*                if (batteryIsolationTime[i] < shortestTime)
+/*                if (battery[i].isolationTime < shortestTime)
                 {
-                    shortestTime = batteryIsolationTime[i];
+                    shortestTime = battery[i].isolationTime;
                     shortestBattery = i+1;
                 } */
             }
@@ -471,7 +460,7 @@ another. */
         if (batteryUnderCharge > 0)
         {
             bool floatPhase = ((getBatteryChargingPhase(batteryUnderCharge-1) == floatC)
-                     && (batterySoC[batteryUnderCharge-1] > configData.config.floatBulkSoC));
+                     && (battery[batteryUnderCharge-1].SoC > configData.config.floatBulkSoC));
             bool restPhase = (getBatteryChargingPhase(batteryUnderCharge-1) == restC);
             if (floatPhase || restPhase)
             {
@@ -491,7 +480,7 @@ another. */
 <li> If the battery is in float and higher than 95%, stop charging.
 </ul> */
             bool floatPhase = ((getBatteryChargingPhase(batteryUnderCharge-1) == floatC)
-                     && (batterySoC[batteryUnderCharge-1] > configData.config.floatBulkSoC));
+                     && (battery[batteryUnderCharge-1].SoC > configData.config.floatBulkSoC));
             if (floatPhase)
             {
                 decisionStatus |= 0x02;
@@ -515,7 +504,7 @@ not in float state with the SoC > 95%, nor in rest phase.*/
                 {
                     uint8_t index = batteryFillStateSort[numBats-i-1]-1;
                     bool floatPhase = ((getBatteryChargingPhase(index) == floatC)
-                             && (batterySoC[index] > configData.config.floatBulkSoC));
+                             && (battery[index].SoC > configData.config.floatBulkSoC));
                     bool restPhase = (getBatteryChargingPhase(index) == restC);
                     if (!(floatPhase || restPhase))
                     {
@@ -559,7 +548,7 @@ the battery under charge if the strategies require it. */
 <li> If the battery under load is on a low or critical battery, allocate to the
 charging battery regardless.
 </ol> */
-            if (batteryFillState[batteryUnderLoad-1] != normalF)
+            if (battery[batteryUnderLoad-1].fillState != normalF)
                 batteryUnderLoad = chargingBattery;
         }
 /**
@@ -570,7 +559,7 @@ charging battery regardless.
 <ol>
 <li> All batteries in normal fill state. The isolated battery has already been
 allocated. */
-            if (batteryFillState[lowestBattery-1] == normalF)
+            if (battery[lowestBattery-1].fillState == normalF)
             {
 /**
 <ul>
@@ -583,14 +572,14 @@ battery is found leave the charger unallocated. */
                     decisionStatus |= 0x01;
                     for (i=0; i<numBats; i++)
                     {
-                        uint8_t battery = batteryFillStateSort[numBats-i-1];
-                        bool floatPhase = ((getBatteryChargingPhase(battery-1) == floatC)
-                                 && (batterySoC[battery-1] > configData.config.floatBulkSoC));
-                        bool restPhase = (getBatteryChargingPhase(battery-1) == restC);
+                        uint8_t index = batteryFillStateSort[numBats-i-1];
+                        bool floatPhase = ((getBatteryChargingPhase(index-1) == floatC)
+                                 && (battery[index-1].SoC > configData.config.floatBulkSoC));
+                        bool restPhase = (getBatteryChargingPhase(index-1) == restC);
                         if (!(floatPhase || restPhase))
                         {
                             decisionStatus |= 0x02;
-                            batteryUnderCharge = battery;
+                            batteryUnderCharge = index;
                             break;
                         }
                     }
@@ -639,7 +628,7 @@ under charge if the strategies require it. */
 
 /**
 <li> At least one battery is normal, and some are low or critical. */
-            else if (batteryFillState[highestBattery-1] == normalF)
+            else if (battery[highestBattery-1].fillState == normalF)
             {
                 decisionStatus = 0x400;
 /**
@@ -650,8 +639,8 @@ isolated. Also if the weakest battery is critical, reallocate unconditionally to
 the charger. Also if the battery under charge is normal, allocate to the weakest
 battery. If no suitable battery is found leave the charger unallocated. */
                 if ((batteryUnderCharge == 0) || 
-                    (batteryFillState[batteryUnderCharge-1] == normalF) ||
-                    (batteryFillState[lowestBattery-1] == criticalF))
+                    (battery[batteryUnderCharge-1].fillState == normalF) ||
+                    (battery[lowestBattery-1].fillState == criticalF))
                 {
                     decisionStatus |= 0x01;
 /**
@@ -660,18 +649,18 @@ is not in float or rest. Leave a hysteresis value of 5% on the SoC to prevent
 thrashing. */
                     for (i=0; i<numBats; i++)
                     {
-                        uint8_t battery = batteryFillStateSort[numBats-i-1];
-                        bool floatPhase = ((getBatteryChargingPhase(battery-1) == floatC)
-                                 && (batterySoC[battery-1] > configData.config.floatBulkSoC));
-                        bool restPhase = (getBatteryChargingPhase(battery-1) == restC);
+                        uint8_t index = batteryFillStateSort[numBats-i-1];
+                        bool floatPhase = ((getBatteryChargingPhase(index-1) == floatC)
+                                 && (battery[index-1].SoC > configData.config.floatBulkSoC));
+                        bool restPhase = (getBatteryChargingPhase(index-1) == restC);
                         if (!(floatPhase || restPhase))
                         {
                             if ((batteryUnderCharge == 0) ||
-                                (batterySoC[battery-1] + SoC_HYSTERESIS) <
-                                batterySoC[batteryUnderCharge-1])
+                                (battery[index-1].SoC + SoC_HYSTERESIS) <
+                                battery[batteryUnderCharge-1].SoC)
                             {
                                 decisionStatus |= 0x02;
-                                batteryUnderCharge = battery;
+                                batteryUnderCharge = index;
                                 break;
                             }
                         }
@@ -689,7 +678,7 @@ charging, then deallocate the battery under load. */
 <li> If the loads are unallocated or if the battery under load is low or
 critical, set to the highest SoC unallocated battery ... */
                 if ((batteryUnderLoad == 0) ||
-                    (batteryFillState[batteryUnderLoad-1] != normalF))
+                    (battery[batteryUnderLoad-1].fillState != normalF))
                 {
                     decisionStatus |= 0x10;
                     for (i=0; i<numBats; i++)
@@ -715,7 +704,7 @@ normal battery which is also isolated, so this must be overridden (this should
 not be the battery under charge if our logic is correct so far).
 </ul> */
                     if ((batteryUnderLoad == 0) ||
-                        (batteryFillState[batteryUnderLoad-1] != normalF))
+                        (battery[batteryUnderLoad-1].fillState != normalF))
                     {
                         decisionStatus |= 0x20;
                         batteryUnderLoad = batteryFillStateSort[0];
@@ -738,14 +727,14 @@ rest phases regardless in case the algorithm got the charge states wrong.
                 uint8_t i=0;
                 for (i=0; i<numBats; i++)
                 {
-                    uint8_t battery = batteryFillStateSort[numBats-i-1];
-                    bool floatPhase = ((getBatteryChargingPhase(battery-1) == floatC)
-                             && (batterySoC[battery-1] > configData.config.floatBulkSoC));
-                    bool restPhase = (getBatteryChargingPhase(battery-1) == restC);
+                    uint8_t index = batteryFillStateSort[numBats-i-1];
+                    bool floatPhase = ((getBatteryChargingPhase(index-1) == floatC)
+                             && (battery[index-1].SoC > configData.config.floatBulkSoC));
+                    bool restPhase = (getBatteryChargingPhase(index-1) == restC);
                     if (!(floatPhase || restPhase))
                     {
                         decisionStatus |= 0x04;
-                        batteryUnderCharge = battery;
+                        batteryUnderCharge = index;
                         break;
                     }
                 }
@@ -777,24 +766,24 @@ the point at which charging is effective. */
 <li> Compute any changes in battery operational states. */
         for (i=0; i<NUM_BATS; i++)
         {
-            uint8_t lastOpState = batteryOpState[i];
-            if (batteryHealthState[i] != missingH)
+            uint8_t lastOpState = battery[i].opState;
+            if (battery[i].healthState != missingH)
             {
-                batteryOpState[i] = isolatedO; /* reset operational state */
+                battery[i].opState = isolatedO; /* reset operational state */
                 if ((batteryUnderLoad > 0) && (batteryUnderLoad == i+1))
                 {
-                    batteryOpState[i] = loadedO;
+                    battery[i].opState = loadedO;
                 }
                 if ((batteryUnderCharge > 0) && (i == batteryUnderCharge-1))
                 {
-                    batteryOpState[i] = chargingO;
+                    battery[i].opState = chargingO;
                 }
 
 /**
 <ol>
 <li> If the battery has reached rest phase and the SoC is less than 70%, set to
 70%. This is a reasonable guess for moderate charge currents. */
-            if ((getBatteryChargingPhase(i) == restC) && (batterySoC[i] < REST_SoC))
+            if ((getBatteryChargingPhase(i) == restC) && (battery[i].SoC < REST_SoC))
             {
                 setBatterySoC(i,REST_SoC);
             }
@@ -804,12 +793,12 @@ the point at which charging is effective. */
 <li> If the operational state of a battery changes from isolated, update the SoC
 if it has been isolated for over 4 hours */
                 if ((lastOpState == isolatedO) &&
-                    (batteryOpState[i] != isolatedO) &&
-                    (batteryIsolationTime[i] > (uint32_t)(4*3600*1024)/getMonitorDelay()))
+                    (battery[i].opState != isolatedO) &&
+                    (battery[i].isolationTime > (uint32_t)(4*3600*1024)/getMonitorDelay()))
                 {
                     setBatterySoC(i,computeSoC(getBatteryVoltage(i),
                                                getTemperature(),getBatteryType(i)));
-                    batteryIsolationTime[i] = 0;
+                    battery[i].isolationTime = 0;
                 }
 /**
 <li> Restart the isolation timer for the battery if it is not isolated or if the
@@ -817,9 +806,9 @@ charger and loads are on the same battery (isolation is not possible in that
 case due to leakage of charging current to other batteries). Set the timer to a
 low value rather than down completely to zero, so that the currently allocated
 isolation timer can handover later. */
-                if ((batteryOpState[i] != isolatedO) ||
+                if ((battery[i].opState != isolatedO) ||
                     (batteryUnderLoad == chargingBattery))
-                    batteryIsolationTime[i] = 10;
+                    battery[i].isolationTime = 10;
             }
         }
 /**
@@ -830,7 +819,7 @@ isolation timer can handover later. */
             setSwitch(batteryUnderLoad,LOAD_2);
 /**
 <li> Turn off all low priority loads if the batteries are all critical */
-            if (batteryFillState[batteryUnderLoad-1] == criticalF)
+            if (battery[batteryUnderLoad-1].fillState == criticalF)
             {
                 setSwitch(0,LOAD_1);
             }
@@ -861,28 +850,28 @@ about 80mA. */
         uint32_t monitorHour = (uint32_t)(3600*1000)/getMonitorDelay();
         for (i=0; i<NUM_BATS; i++)
         {
-            if (batteryHealthState[i] != missingH)
+            if (battery[i].healthState != missingH)
             {
                 if (abs(getBatteryCurrent(i)) < 30)
-                    batteryCurrentSteady[i]++;
+                    battery[i].currentSteady++;
                 else
-                    batteryCurrentSteady[i] = 0;
-                if (batteryCurrentSteady[i] > monitorHour)
+                    battery[i].currentSteady = 0;
+                if (battery[i].currentSteady > monitorHour)
                 {
                     setBatterySoC(i,computeSoC(getBatteryVoltage(i),
                                                getTemperature(),getBatteryType(i)));
-                    batteryCurrentSteady[i] = 0;
+                    battery[i].currentSteady = 0;
                 }
 /**
 <li> Update the isolation time of each battery. If a battery has been isolated
 for over 8 hours, compute the SoC and drop the isolation time back to zero to
 allow other batteries to pass to the isolation state. */
-                batteryIsolationTime[i]++;
-                if (batteryIsolationTime[i] > 8*monitorHour)
+                battery[i].isolationTime++;
+                if (battery[i].isolationTime > 8*monitorHour)
                 {
                     setBatterySoC(i,computeSoC(getBatteryVoltage(i),
                                                getTemperature(),getBatteryType(i)));
-                    batteryIsolationTime[i] = 0;
+                    battery[i].isolationTime = 0;
                 }
             }
         }
@@ -913,11 +902,11 @@ static void initGlobals(void)
 /* Determine capacity */
         setBatterySoC(i,computeSoC(getBatteryVoltage(i),getTemperature(),
                                    getBatteryType(i)));
-        batteryCurrentSteady[i] = 0;
-        batteryIsolationTime[i] = 0;
+        battery[i].currentSteady = 0;
+        battery[i].isolationTime = 0;
 /* Start with all batteries isolated */
-        batteryOpState[i] = isolatedO;
-        batteryHealthState[i] = goodH;
+        battery[i].opState = isolatedO;
+        battery[i].healthState = goodH;
     }
     batteryUnderLoad = 0;
     batteryUnderCharge = 0;
@@ -971,13 +960,13 @@ int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type)
 /*--------------------------------------------------------------------------*/
 /** @brief Access the Battery Current Offset
 
-@param[in] battery: int 0..NUM_BATS-1
+@param[in] i: int 0..NUM_BATS-1
 @return int16_t battery current offset.
 */
 
-int16_t getBatteryCurrentOffset(int battery)
+int16_t getBatteryCurrentOffset(int i)
 {
-    return currentOffsets.dataArray.battery[battery];
+    return currentOffsets.dataArray.battery[i];
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1011,9 +1000,9 @@ int16_t getPanelCurrentOffset(int panel)
 @return int16_t battery SoC.
 */
 
-int16_t getBatterySoC(int battery)
+int16_t getBatterySoC(int i)
 {
-    return batterySoC[battery];
+    return battery[i].SoC;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1030,12 +1019,12 @@ int16_t getBatteryUnderLoad(void)
 /*--------------------------------------------------------------------------*/
 /** @brief Set the Battery Under Load
 
-@param[in] battery: int 0..NUM_BATS-1
+@param[in] i: int 0..NUM_BATS-1
 */
 
-void setBatteryUnderLoad(int battery)
+void setBatteryUnderLoad(int i)
 {
-    batteryUnderLoad = battery;
+    batteryUnderLoad = i;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1044,13 +1033,13 @@ void setBatteryUnderLoad(int battery)
 This is done by the charging task when the battery enters float phase.
 If the current SoC is less than 100%, report the battery as faulty.
 
-@param[in] battery: int 0..NUM_BATS-1
+@param[in] i: int 0..NUM_BATS-1
 */
 
-void resetBatterySoC(int battery)
+void resetBatterySoC(int i)
 {
-    if (batterySoC[battery] < 25600) batteryFillState[battery] = faultyF;
-    setBatterySoC(battery,25600);
+    if (battery[i].SoC < 25600) battery[i].fillState = faultyF;
+    setBatterySoC(i,25600);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1059,16 +1048,16 @@ void resetBatterySoC(int battery)
 State of charge is percentage times 256. The accumulated charge is also computed
 here in ampere seconds.
 
-@param[in] battery: int 0..NUM_BATS-1
+@param[in] i: int 0..NUM_BATS-1
 @param[in] soc: int16_t 0..25600
 */
 
-void setBatterySoC(int battery,int16_t soc)
+void setBatterySoC(int i,int16_t soc)
 {
-    if (batterySoC[battery] > 25600) batterySoC[battery] = 25600;
-    else batterySoC[battery] = soc;
+    if (battery[i].SoC > 25600) battery[i].SoC = 25600;
+    else battery[i].SoC = soc;
 /* SoC is computed from the charge so this is the quantity changed. */
-    batteryCharge[battery] = soc*getBatteryCapacity(battery)*36;
+    battery[i].charge = soc*getBatteryCapacity(i)*36;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1084,14 +1073,14 @@ void startCalibration()
 /*--------------------------------------------------------------------------*/
 /** @brief Change Missing Status of batteries
 
-@param[in] battery: int 0..NUM_BATS-1
+@param[in] i: int 0..NUM_BATS-1
 @param[in] missing: boolean
 */
 
-void setBatteryMissing(int battery, bool missing)
+void setBatteryMissing(int i, bool missing)
 {
-    if (missing) batteryHealthState[battery] = missingH;
-    else batteryHealthState[battery] = goodH;
+    if (missing) battery[i].healthState = missingH;
+    else battery[i].healthState = goodH;
 }
 
 /*--------------------------------------------------------------------------*/
