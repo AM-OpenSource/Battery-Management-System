@@ -29,7 +29,7 @@ tasks running on the same microcontroller.
 #ifndef POWER_MANAGEMENT_OBJDIC_H_
 #define POWER_MANAGEMENT_OBJDIC_H_
 
-#define FIRMWARE_VERSION    "1.04a"
+#define FIRMWARE_VERSION    "1.05"
 
 #define NUM_BATS    3
 #define NUM_LOADS   2
@@ -39,11 +39,18 @@ tasks running on the same microcontroller.
 #define LOAD_2      1
 #define PANEL       2
 
+/*--------------------------------------------------------------------------*/
+/* Battery state identifiers */
+/* Type identifies the way the battery is to be charged and the voltage levels involved */
 typedef enum {wetT=0, gelT=1, agmT=2} battery_Type;
+/* Different battery charge states affecting how they are allocated to load/charger */
 typedef enum {normalF=0, lowF=1, criticalF=2, faultyF=3} battery_Fl_States;
+/* Operational states identifying current allocation to load/charger */
 typedef enum {loadedO=0, chargingO=1, isolatedO=2} battery_Op_States;
+/* Stages in the charge cycle */
 typedef enum {bulkC=0, absorptionC=1, floatC=2, restC=3, equalizationC=4} battery_Ch_States;
-typedef enum {goodH=0, faultyH=1, missingH=2} battery_Hl_States;
+/* Health state: weak - avoid allocating to load, faulty - charging did not end cleanly */
+typedef enum {goodH=0, faultyH=1, missingH=2, weakH=3} battery_Hl_States;
 
 /* Represent the measured data arrays in a union as separate or combined */
 struct Interface
@@ -58,6 +65,20 @@ union InterfaceGroup
 {
     int16_t data[NUM_IFS];
     struct Interface dataArray;
+};
+
+/* Battery State structure encapsulates all quantities for a particular battery.
+All current, voltage, SoC, charge variables are times 256. */
+struct batteryStates {
+    uint16_t currentSteady;     /* Time the battery current is unchanging */
+    battery_Fl_States fillState;
+    battery_Op_States opState;
+    battery_Hl_States healthState;
+    int16_t lastCurrent;
+    int16_t lastVoltage;
+    uint16_t SoC;               /* State of Charge is percentage (times 256) */
+    int32_t charge;             /* Battery charge is Coulombs (times 256) */
+    uint32_t isolationTime;     /* Time that battery is in isolation state */
 };
 
 /*--------------------------------------------------------------------------*/
@@ -160,7 +181,8 @@ Limit is used to prevent charging from occurring in extreme heat. */
 
 /* These are in absolute voltages times 256. */
 #define LOW_VOLTAGE         3072    /* 12.0V */
-#define CRITICAL_VOLTAGE    2816    /* 11.0V */
+#define GOOD_VOLTAGE        3200    /* 12.5V */
+#define CRITICAL_VOLTAGE    2944    /* 11.5V */
 
 #define LOW_SOC             60*256   /* 60% */
 #define CRITICAL_SOC        45*256   /* 45% */

@@ -61,21 +61,6 @@ interface, the result is maximum negative, around -4000) */
 #define PRESERVE_ISOLATION  1 << 1
 
 /*--------------------------------------------------------------------------*/
-/* Battery State structure encapsulates all quantities for a particular battery.
-All current, voltage, SoC, charge variables are times 256. */
-struct batteryStates {
-    uint16_t currentSteady;     /* Time the battery current is unchanging */
-    battery_Fl_States fillState;
-    battery_Op_States opState;
-    battery_Hl_States healthState;
-    int16_t lastCurrent;
-    int16_t lastVoltage;
-    uint16_t SoC;               /* State of Charge is percentage (times 256) */
-    int32_t charge;             /* Battery charge is Coulombs (times 256) */
-    uint32_t isolationTime;     /* Time that battery is in isolation state */
-};
-
-/*--------------------------------------------------------------------------*/
 /* Prototypes */
 /*--------------------------------------------------------------------------*/
 void prvMonitorTask(void *pvParameters);
