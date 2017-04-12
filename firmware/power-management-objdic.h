@@ -29,7 +29,7 @@ tasks running on the same microcontroller.
 #ifndef POWER_MANAGEMENT_OBJDIC_H_
 #define POWER_MANAGEMENT_OBJDIC_H_
 
-#define FIRMWARE_VERSION    "1.05"
+#define FIRMWARE_VERSION    "1.05c"
 
 #define NUM_BATS    3
 #define NUM_LOADS   2
@@ -181,7 +181,7 @@ Limit is used to prevent charging from occurring in extreme heat. */
 
 /* These are in absolute voltages times 256. */
 #define LOW_VOLTAGE         3072    /* 12.0V */
-#define GOOD_VOLTAGE        3200    /* 12.5V */
+#define GOOD_VOLTAGE        3328    /* 13.0V */
 #define CRITICAL_VOLTAGE    2944    /* 11.5V */
 
 #define LOW_SOC             60*256   /* 60% */
