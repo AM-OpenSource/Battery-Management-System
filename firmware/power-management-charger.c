@@ -239,7 +239,8 @@ manage the constant voltage charging. */
 /**
 <li> At the end of the absorption period, if another battery has changed to bulk
 phase, pass to rest phase to allow some other battery to have its turn. This
-will take effect on the next cycle of the monitor task. */
+will take effect on the next cycle of the monitor task. If the SoC is less than
+70%, set to 70%. This is a reasonable guess for moderate charge currents.*/
                     if (absorptionPhaseTime[index] > configData.config.absorptionTime)
                     {
                         for (i=0; i<NUM_BATS; i++)
@@ -248,6 +249,11 @@ will take effect on the next cycle of the monitor task. */
                             {
                                 setBatteryChargingPhase(index,restC);
                                 absorptionPhaseTime[index] = 0;
+                                if ((getBatteryChargingPhase(i) == restC) &&
+                                    (getBatterySoC(i) < REST_SoC))
+                                {
+                                    setBatterySoC(i,REST_SoC);
+                                }
                                 break;
                             }
                         }
