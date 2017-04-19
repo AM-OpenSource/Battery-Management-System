@@ -539,7 +539,7 @@ and isolation during night periods. */
                 batteryUnderLoad = 0;
             }
 
-/*------ MORE THAN ONE BATTERY ---------*/
+/*------ MULTIPLE BATTERIES ---------*/
 /**
 <li> More than one battery: allocate the loads to the highest and the charger
 to the lowest, taking into account the battery health and if the charger is
@@ -552,7 +552,7 @@ active. */
 determination of reasonably accurate terminal voltage and hence SoC. */
             bool isolatable = (numBats > 2);
 
-/* Consider charger allocation. */
+/* CHARGER allocation. */
             if (! chargerOff)
             {
 /**
@@ -622,6 +622,7 @@ if all are in rest or float. */
                 }
             }
 
+/* LOAD allocation */
 /**
 <li> If the charger has been allocated to the loaded battery, then deallocate
 the loaded battery. This will allow the charger to swap back and forth as the
@@ -638,6 +639,13 @@ still in normal state. */
                 (battery[batteryUnderLoad-1].healthState == weakH))
                 batteryUnderLoad = 0;
 
+/**
+<li> If the battery under load ends up on a low or critical battery, deallocate
+to allow a better battery to be sought.
+</ul> */
+            if ((batteryUnderLoad != 0) &&
+                (battery[batteryUnderLoad-1].fillState != normalF))
+                batteryUnderLoad = 0;
 /**
 <li> If the loads are unallocated, set to the highest SoC unallocated battery.
 Avoid the battery that has been idle for the longest time, and also the battery
@@ -664,7 +672,7 @@ so this will only leave without the load allocated if all batteries are weak. */
             }
 /**
 <li> If still not allocated, just go for a battery that is not weak and not on
-the charger, and don't worry if battery is isolated time. This is also activated
+the charger, and don't worry if battery is isolated. This is also activated
 if the system is not isolatable. */
             if (batteryUnderLoad == 0)
             {
