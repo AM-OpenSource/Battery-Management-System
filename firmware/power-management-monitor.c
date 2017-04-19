@@ -455,7 +455,7 @@ one panel.
 /**
 <ul>
 <li> Change each battery to bulk phase if it is in float phase and the SoC drops
-below a charging restart threshold (nominally 95%). */
+below a charging restart threshold (default 95%). */
         for (i=0; i<NUM_BATS; i++)
         {
             if ((getBatteryChargingPhase(i) == floatC) &&
@@ -483,8 +483,9 @@ and isolation during night periods. */
         chargerOff = true;
         for (i=0; i<NUM_BATS; i++)
         {
-            if ((getBatteryVoltage(i) > getPanelVoltage(0)+128))
+            if (getBatteryVoltage(i) < (getPanelVoltage(0)+128))
             {
+                decisionStatus |= 0x100;
                 chargerOff = false;
                 break;
             }
@@ -502,10 +503,10 @@ and isolation during night periods. */
                 break;
             }
         }
-        if (allInFloat) chargerOff = true;
-        if ((batteryUnderCharge > 0) && chargerOff)
+        if (allInFloat)
         {
-            decisionStatus |= 0xFFFF;
+            decisionStatus |= 0x200;
+            chargerOff = true;
             batteryUnderCharge = 0;
         }
 
@@ -515,14 +516,14 @@ and isolation during night periods. */
 <li> One battery: just allocate the loads and charger to it. */
         if (numBats == 1)
         {
-            decisionStatus = 0x1000;
+            decisionStatus |= 0x1000;
             batteryUnderCharge = 1;
             batteryUnderLoad = 1;
 /**
 <ul>
 <li> If the battery is in float and higher than 95%, stop charging. */
-            bool floatPhase = ((getBatteryChargingPhase(batteryUnderCharge-1) == floatC)
-                     && (battery[batteryUnderCharge-1].SoC > configData.config.floatBulkSoC));
+            bool floatPhase = ((getBatteryChargingPhase(0) == floatC)
+                     && (battery[0].SoC > configData.config.floatBulkSoC));
             if (floatPhase || chargerOff)
             {
                 decisionStatus |= 0x02;
@@ -530,158 +531,42 @@ and isolation during night periods. */
             }
         }
 /**
-<li> If the loaded battery is weak, then deallocate the battery.
+<li> If the loaded battery is weak, then deallocate the loads to the battery.
 </ul> */
-            if (battery[batteryUnderLoad-1].healthState == weakH)
+            if (battery[0].healthState == weakH)
             {
                 decisionStatus |= 0x40;
                 batteryUnderLoad = 0;
             }
 
-/*------ TWO BATTERIES ---------*/
+/*------ MORE THAN ONE BATTERY ---------*/
 /**
-<li> Two batteries: allocate the loads to the highest and the charger to the
-lowest, taking into account the battery health and if the charger is active. */
-        else if (numBats >1)
+<li> More than one battery: allocate the loads to the highest and the charger
+to the lowest, taking into account the battery health and if the charger is
+active. */
+        else if (numBats > 1)
         {
-            decisionStatus = 0x2000;
+            decisionStatus |= 0x2000;
 
+/* For more than two batteries, at least one can be held isolated for later
+determination of reasonably accurate terminal voltage and hence SoC. */
             bool isolatable = (numBats > 2);
+
+/* Consider charger allocation. */
             if (! chargerOff)
             {
 /**
 <ul>
 <li> If the lowest battery is not in normal state, deallocate the charger
-to allow it to be moved to another battery. */
+to allow it to be moved to another battery if necessary. */
                 if (battery[lowestBattery-1].fillState != normalF)
                     batteryUnderCharge = 0;
 /**
-<li> If the lowest battery is critical, allocate to the charger. */
+<li> If the lowest battery is critical, allocate to the charger unconditionally. */
                 if (battery[lowestBattery-1].fillState == criticalF)
                 {
                     batteryUnderCharge = lowestBattery;
-                    decisionStatus |= 0x04;
-                }
-/**
-<li> Check all batteries in case there is a weak one requiring the charger with
-priority. This will only find the lowest SoC such battery encountered. */
-                for (i=0; i<numBats; i++)
-                {
-                    uint8_t index = batteryFillStateSort[numBats-i-1];
-                    if (battery[index-1].healthState == weakH)
-                    {
-                        batteryUnderCharge = index;
-                        decisionStatus |= 0x04;
-                        break;
-                    }
-                }
-/**
-<li> If the charger is unallocated, set to the lowest SoC battery if it is
-not in float state with the SoC > 95%, nor in rest phase. The charger will be
-left unallocated if all are in this state. */
-                if (batteryUnderCharge == 0)
-                {
-                    for (i=0; i<numBats; i++)
-                    {
-                        uint8_t index = batteryFillStateSort[numBats-i-1];
-                        bool floatPhase = ((getBatteryChargingPhase(index-1) == floatC)
-                             && (battery[index-1].SoC > configData.config.floatBulkSoC));
-                        bool restPhase = (getBatteryChargingPhase(index-1) == restC);
-                        if (!floatPhase && !restPhase)
-                        {
-                            decisionStatus |= 0x01;
-                            batteryUnderCharge = index;
-                            break;
-                        }
-                    }
-                }
-            }
-/**
-<li> If the charger has been allocated to the loaded battery, then
-deallocate the loaded battery. This will allow the charger to swap back and
-forth as the loaded battery droops and the charging battery completes charge. */
-            if ((batteryUnderLoad == batteryUnderCharge) &&
-                (getMonitorStrategy() & SEPARATE_LOAD))
-                batteryUnderLoad = 0;
-
-/**
-<li> If the loaded battery is weak, then deallocate the loaded battery. */
-            if (battery[batteryUnderLoad-1].healthState == weakH)
-                batteryUnderLoad = 0;
-
-/**
-<li> If the loads are unallocated, set them to the highest SoC unallocated
-battery. Avoid the battery under charge if the strategies require it. Do not
-allocate if the health state is weak. A weak battery will have the charger 
-allocated already so this will only leave the load unallocated if all batteries
-are weak. */
-            if (batteryUnderLoad == 0)
-            {
-                for (i=0; i<numBats; i++)
-                {
-                    uint8_t index = batteryFillStateSort[i];
-                    bool weak = (battery[index-1].healthState == weakH);
-                    bool charging = ((index == batteryUnderCharge) &&
-                        (getMonitorStrategy() & SEPARATE_LOAD));
-                    if (!weak && !charging)
-                    {
-                        batteryUnderLoad = batteryFillStateSort[i];
-                        decisionStatus |= 0x10;
-                        break;
-                    }
-                }
-            }
-/**
-<li> If still not allocated, just go for a battery that is not weak. If this is
-still not found, loads will remain unallocated. */
-            if (batteryUnderLoad == 0)
-            {
-                for (i=0; i<numBats; i++)
-                {
-                    if (battery[batteryFillStateSort[i]-1].healthState != weakH)
-                    {
-                        batteryUnderLoad = batteryFillStateSort[i];
-                        decisionStatus |= 0x20;
-                        break;
-                    }
-                }
-            }
-/**
-<li> If the battery under load ends up on a low or critical battery, allocate to
-the charging battery regardless of strategies, if the latter is not also weak.
-</ul> */
-            if ((batteryUnderCharge != 0) && (batteryUnderLoad != 0) &&
-                (battery[batteryUnderCharge-1].healthState != weakH) &&
-                (battery[batteryUnderLoad-1].fillState != normalF))
-            {
-                batteryUnderLoad = batteryUnderCharge;
-                decisionStatus |= 0x40;
-                break;
-            }
-
-        }
-
-/*------ MORE THAN TWO BATTERIES ---------*/
-/**
-<li> More than two batteries: manage isolation as well as charging states. */
-        else if (numBats > 2)
-        {
-            decisionStatus = 0x3000;
-
-            if (! chargerOff)
-            {
-/**
-<ul>
-<li> If the lowest battery is not in normal state, deallocate the charger
-to allow it to be moved to another battery. */
-                if (battery[lowestBattery-1].fillState != normalF)
-                    batteryUnderCharge = 0;
-/**
-<li> If the lowest battery is critical, allocate to the charger. */
-                if (battery[lowestBattery-1].fillState == criticalF)
-                {
-                    batteryUnderCharge = lowestBattery;
-                    decisionStatus |= 0x04;
+                    decisionStatus |= 0x08;
                 }
 /**
 <li> Check all batteries in case there is a weak one requiring the charger with
@@ -699,7 +584,7 @@ priority. This will only deal with the lowest SoC such battery encountered. */
 /**
 <li> If the charger is unallocated, set to the lowest SoC battery, provided this
 battery is not in float with SoC > 95%, nor in rest phase, nor isolated. */
-                if (batteryUnderCharge == 0)
+                if ((batteryUnderCharge == 0) && isolatable)
                 {
                     for (i=0; i<numBats; i++)
                     {
@@ -717,34 +602,40 @@ battery is not in float with SoC > 95%, nor in rest phase, nor isolated. */
                     }
                 }
 /**
-<li> If the charger is still unallocated, try for the isolated battery. */
+<li> If the charger is still unallocated, try for the isolated battery. This
+is also activated if the system is not isolatable. The charger is not allocated
+if all are in rest or float. */
                 if (batteryUnderCharge == 0)
                 {
-                    uint8_t index = longestBattery;
-                    bool floatPhase = (getBatteryChargingPhase(index-1) == floatC);
-                    bool restPhase = (getBatteryChargingPhase(index-1) == restC);
-                    if (!floatPhase && !restPhase)
+                    for (i=0; i<numBats; i++)
                     {
-                        decisionStatus |= 0x02;
-                        batteryUnderCharge = index;
-                        break;
+                        uint8_t index = batteryFillStateSort[numBats-i-1];
+                        bool floatPhase = (getBatteryChargingPhase(index-1) == floatC);
+                        bool restPhase = (getBatteryChargingPhase(index-1) == restC);
+                        if (!floatPhase && !restPhase)
+                        {
+                            decisionStatus |= 0x02;
+                            batteryUnderCharge = index;
+                            break;
+                        }
                     }
                 }
             }
 
 /**
-<li> If the charger has been allocated to the loaded battery, then
-deallocate the loaded battery. This will allow the charger to swap back and
-forth as the loaded battery droops and the charging battery completes charge.
-If the charger has been deallocated, maintain the load on the same battery as
-long as it is still in normal state. */
+<li> If the charger has been allocated to the loaded battery, then deallocate
+the loaded battery. This will allow the charger to swap back and forth as the
+loaded battery droops and the charging battery completes charge. If the charger
+has been deallocated, maintain the load on the same battery as long as it is
+still in normal state. */
             if ((batteryUnderLoad == batteryUnderCharge) &&
                 (getMonitorStrategy() & SEPARATE_LOAD))
                 batteryUnderLoad = 0;
 
 /**
 <li> If the loaded battery is weak, then deallocate the loaded battery. */
-            if (battery[batteryUnderLoad-1].healthState == weakH)
+            if ((batteryUnderLoad != 0) && 
+                (battery[batteryUnderLoad-1].healthState == weakH))
                 batteryUnderLoad = 0;
 
 /**
@@ -753,11 +644,11 @@ Avoid the battery that has been idle for the longest time, and also the battery
 under charge if the strategies require it.  Do not allocate if the
 health state is weak. A weak battery will have the charger allocated already
 so this will only leave without the load allocated if all batteries are weak. */
-            if (batteryUnderLoad == 0)
+            if ((batteryUnderLoad == 0) && isolatable)
             {
                 for (i=0; i<numBats; i++)
                 {
-                    uint8_t index = batteryFillStateSort[i-1];
+                    uint8_t index = batteryFillStateSort[i];
                     bool isolated = ((index == longestBattery) &&
                                     (getMonitorStrategy() & PRESERVE_ISOLATION));
                     bool charging = ((index == batteryUnderCharge) &&
@@ -773,12 +664,13 @@ so this will only leave without the load allocated if all batteries are weak. */
             }
 /**
 <li> If still not allocated, just go for a battery that is not weak and not on
-the charger, and don't worry about longest idle time. */
+the charger, and don't worry if battery is isolated time. This is also activated
+if the system is not isolatable. */
             if (batteryUnderLoad == 0)
             {
                 for (i=0; i<numBats; i++)
                 {
-                    uint8_t index = batteryFillStateSort[i-1];
+                    uint8_t index = batteryFillStateSort[i];
                     bool charging = ((index == batteryUnderCharge) &&
                                     (getMonitorStrategy() & SEPARATE_LOAD));
                     bool weak = (battery[index-1].healthState == weakH);
@@ -797,7 +689,7 @@ still not found, loads will remain unallocated. */
             {
                 for (i=0; i<numBats; i++)
                 {
-                    uint8_t index = batteryFillStateSort[i-1];
+                    uint8_t index = batteryFillStateSort[i];
                     bool weak = (battery[index-1].healthState == weakH);
                     if (!weak)
                     {
@@ -816,8 +708,7 @@ the charging battery regardless of strategies, if the latter is not also weak.
                 (battery[batteryUnderLoad-1].fillState != normalF))
             {
                 batteryUnderLoad = batteryUnderCharge;
-                decisionStatus |= 0x40;
-                break;
+                decisionStatus |= 0x80;
             }
         }
 

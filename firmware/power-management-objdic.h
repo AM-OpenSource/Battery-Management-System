@@ -29,7 +29,7 @@ tasks running on the same microcontroller.
 #ifndef POWER_MANAGEMENT_OBJDIC_H_
 #define POWER_MANAGEMENT_OBJDIC_H_
 
-#define FIRMWARE_VERSION    "1.05d"
+#define FIRMWARE_VERSION    "1.06"
 
 #define NUM_BATS    3
 #define NUM_LOADS   2
@@ -184,29 +184,36 @@ Limit is used to prevent charging from occurring in extreme heat. */
 #define GOOD_VOLTAGE        3328    /* 13.0V */
 #define CRITICAL_VOLTAGE    2944    /* 11.5V */
 
-#define LOW_SOC             60*256   /* 60% */
-#define CRITICAL_SOC        45*256   /* 45% */
+#define LOW_SOC             60*256  /* 60% */
+#define CRITICAL_SOC        45*256  /* 45% */
+
 /*--------------------------------------------------------------------------*/
 /* Charger algorithm default parameters */
 
 /* Minimum time that the battery is in a rest phase, in seconds. */
-#define REST_TIME 30
+#define REST_TIME           30
 
 /* Minimum time that the battery is in the absorption phase, in seconds. */
-#define ABSORPTION_TIME 90
+#define ABSORPTION_TIME     90
 
 /* This defines the lowest the duty cycle is allowed to go as it may not recover
 when it needs to be raised. Check that the duty cycle reduction doesn't
 cause duty cycle to go to zero at any time. The lower this is, the longer
 it will take the duty cycle to rise in response to changes. */
-#define MIN_DUTYCYCLE   256
+#define MIN_DUTYCYCLE       256
 
 /* Time to wait before passing to float. 2 hours, in seconds. */
-#define FLOAT_DELAY     7200
+#define FLOAT_DELAY         7200
 
-/* SoC above which charging is stopped in float phase */
-#define FLOAT_BULK_SOC  95*256
+/* SoC above which charging is stopped in float phase (below this it is
+assumed that float phase is ended). */
+#define FLOAT_BULK_SOC      95*256  /* 95% */
 
+/* SoC minimum setting when battery reaches rest phase. */
+#define REST_SoC            70*256  /* 70% */
+
+/* SoC hysteresis value when changing batteries under charge. */
+#define SoC_HYSTERESIS       5*256  /* 5% */
 /*--------------------------------------------------------------------------*/
 /****** Object Dictionary Items *******/
 /* Configuration items, updated externally, are stored to NVM */

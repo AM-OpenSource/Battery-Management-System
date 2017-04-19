@@ -36,11 +36,6 @@ Initial 29 September 2013
 /* Delay to allow time for first measurements to come in */
 #define MONITOR_STARTUP_DELAY       (( portTickType )1000/portTICK_RATE_MS )
 
-/* SoC minimum setting for battery reaching rest phase. */
-#define REST_SoC 70*256
-
-/* SoC hysteresis value when changing batteries under charge. */
-#define SoC_HYSTERESIS 5*256
 /*--------------------------------------------------------------------------*/
 /* Calibration Constants */
 /* Threshold to test for valid offset measurement (without power on the
