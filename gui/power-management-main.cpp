@@ -1709,7 +1709,7 @@ void PowerManagementGui::saveLine(QString line)
         return;
     }
     QTextStream out(outFile);
-    out << line << "\n\r";
+    out << line << "\r\n";
 }
 
 //-----------------------------------------------------------------------------
