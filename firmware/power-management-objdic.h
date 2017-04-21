@@ -29,7 +29,7 @@ tasks running on the same microcontroller.
 #ifndef POWER_MANAGEMENT_OBJDIC_H_
 #define POWER_MANAGEMENT_OBJDIC_H_
 
-#define FIRMWARE_VERSION    "1.06a"
+#define FIRMWARE_VERSION    "1.06b"
 
 #define NUM_BATS    3
 #define NUM_LOADS   2
@@ -152,7 +152,7 @@ times 256 times 4096 */
 
 #define VOLTAGE_SCALE 1418
 
-#warning "Version 3 Selected"
+//#warning "Version 3 Selected"
 
 #else
 #error "Version is not defined"

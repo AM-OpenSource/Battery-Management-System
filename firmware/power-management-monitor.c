@@ -374,15 +374,17 @@ the SoC. The maximum charge is the battery capacity in ampere seconds
                 else if ((batteryAbsVoltage < configData.config.criticalVoltage) ||
                          (battery[i].SoC < configData.config.criticalSoC))
                     battery[i].fillState = criticalF;
-/* If a battery voltage falls below a dropout voltage, label it as a weak
-battery to get the charger with priority and avoid loads. Restore when
-voltage rises above the good threshold.  */
+/**
+<li> If a battery voltage falls below a dropout voltage, label it as a weak
+battery to get the charger with priority and avoid loads. Restore when the
+battery enters rest phase. This will give the battery time to recover and
+will avoid thrashing when a battery is ailing. */
                 if (batteryAbsVoltage < configData.config.criticalVoltage)
                 {
                     battery[i].healthState = weakH;
                     battery[i].fillState = criticalF;
                 }
-                if (batteryAbsVoltage > GOOD_VOLTAGE)
+                if (getBatteryChargingPhase(i) == restC)
                 {
                     battery[i].healthState = goodH;
                 }
@@ -487,6 +489,7 @@ and isolation during night periods. */
             {
                 decisionStatus |= 0x100;
                 chargerOff = false;
+                batteryUnderCharge = 0;
                 break;
             }
         }
