@@ -239,8 +239,7 @@ manage the constant voltage charging. */
 /**
 <li> At the end of the absorption period, if another battery has changed to bulk
 phase, pass to rest phase to allow some other battery to have its turn. This
-will take effect on the next cycle of the monitor task. If the SoC is less than
-70%, set to 70%. This is a reasonable guess for moderate charge currents.*/
+will take effect on the next cycle of the monitor task. */
                     if (absorptionPhaseTime[index] > configData.config.absorptionTime)
                     {
                         for (i=0; i<NUM_BATS; i++)
@@ -249,11 +248,6 @@ will take effect on the next cycle of the monitor task. If the SoC is less than
                             {
                                 setBatteryChargingPhase(index,restC);
                                 absorptionPhaseTime[index] = 0;
-                                if ((getBatteryChargingPhase(i) == restC) &&
-                                    (getBatterySoC(i) < REST_SoC))
-                                {
-                                    setBatterySoC(i,REST_SoC);
-                                }
                                 break;
                             }
                         }
@@ -329,7 +323,7 @@ value that will allow it to grow again if needed (round-off error problem). */
 <li> <b>Additional Decisions:</b>
 <ul>
 <li> If the panel voltage is too low, turn off charging. */
-            if (getPanelVoltage(0) < 10*256)
+            if (getPanelVoltage(0) < 11*256)
                 dutyCycleActual = 0;
 
 /**
@@ -337,6 +331,13 @@ value that will allow it to grow again if needed (round-off error problem). */
             if ((getBatteryChargingPhase(index) == restC) ||
                 (getBatteryChargingPhase(index) == floatC))
                 dutyCycleActual = 0;
+
+/**
+<li> If the SoC is less than 70%, set to 70%. This is a reasonable guess for
+moderate charge currents. */
+            if ((getBatteryChargingPhase(index) == restC) &&
+                (getBatterySoC(index) < REST_SoC))
+                setBatterySoC(index,REST_SoC);
 
 /**
 </ul> */
