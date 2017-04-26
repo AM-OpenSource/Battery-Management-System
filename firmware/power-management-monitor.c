@@ -151,7 +151,11 @@ switches off to allow the panel to be measured. */
 quickly but terminal voltage may take some time, which could slightly affect
 some currents. */
                 vTaskDelay(getCalibrationDelay());
-/* Check to see if a battery is missing as a result of setting loads. */
+/* Check to see if a battery is missing as a result of setting loads by reading
+the LED indicators on the battery interface boards.
+@note Missing batteries not under load will not show as missing due to the
+nature of the circuitry, so any existing missing battery status is not
+removed here; this must be done externally. */
                 for (i=0; i<NUM_BATS; i++)
                 {
                     if (((getIndicators() >> 2*i) & 0x02) == 0)
@@ -324,19 +328,12 @@ via the File module, and transmitted via the Communications module. */
 /**
 <b>Compute the Battery State:</b>
 <ul>
-<li> Check to see if any batteries are missing. This can happen if a battery put
-under load has been removed. Remove any existing loads and charger from that
-battery. If a battery has already been marked as missing then perpetuate the
-state.
-@note Missing batteries not under load will not show as missing due to the
-nature of the circuitry, so any existing missing battery status is not
-removed here; this must be done externally. */
+<li> Check to see if any batteries are missing and remove any existing loads
+and charger from that battery. */
         for (i=0; i<NUM_BATS; i++)
         {
-            if ((battery[i].healthState == missingH) || 
-                ((getIndicators() >> 2*i) & 0x02) == 0)
+            if (battery[i].healthState == missingH)
             {
-                battery[i].healthState = missingH;
                 setBatterySoC(i,0);
                 if (batteryUnderLoad == i+1)
                     batteryUnderLoad = 0;
@@ -379,14 +376,16 @@ the SoC. The maximum charge is the battery capacity in ampere seconds
 battery to get the charger with priority and avoid loads. Restore when the
 battery enters rest phase. This will give the battery time to recover and
 will avoid thrashing when a battery is ailing. */
-                if (batteryAbsVoltage < configData.config.criticalVoltage)
+                if (batteryAbsVoltage < WEAK_VOLTAGE)
                 {
                     battery[i].healthState = weakH;
                     battery[i].fillState = criticalF;
+                    battery[i].SoC = 0;
                 }
                 if (getBatteryChargingPhase(i) == restC)
                 {
                     battery[i].healthState = goodH;
+                    battery[i].SoC = 70*256;
                 }
             }
         }
@@ -489,10 +488,10 @@ and isolation during night periods. */
             {
                 decisionStatus |= 0x100;
                 chargerOff = false;
-                batteryUnderCharge = 0;
                 break;
             }
         }
+        if (chargerOff) batteryUnderCharge = 0;
 
 /**
 <li> If all batteries are in float phase, disconnect the charger.

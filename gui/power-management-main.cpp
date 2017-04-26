@@ -885,7 +885,14 @@ alive. Also check for calibration as time emssages stop during this process. */
             PowerManagementMainUi.battery1Health->
                 setText("F");
         }
-        else
+        else if (healthState == 3)
+        {
+            PowerManagementMainUi.battery1Health->
+                setStyleSheet("background-color:red;");
+            PowerManagementMainUi.battery1Health->
+                setText("F");
+        }
+        else if (healthState == 2)
         {
             PowerManagementMainUi.battery1Health->
                 setStyleSheet("background-color:white;");
