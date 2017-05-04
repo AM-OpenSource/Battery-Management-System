@@ -87,6 +87,9 @@ PowerManagementGui::PowerManagementGui(QString device, uint parameter,
 // Query the TCP socket to establish a connection
     connectAddress = device;
     connectPort = parameter;
+// Set port/address edit boxes.
+    PowerManagementMainUi.tcpAddressEdit->setText(connectAddress);
+    PowerManagementMainUi.tcpPortEdit->setText(QString("%1").arg(connectPort));
 /* Open TCP port if it has been specified, otherwise leave to the GUI. */
     if (! connectAddress.isEmpty()) on_connectButton_clicked();
 #endif
@@ -1941,6 +1944,9 @@ void PowerManagementGui::on_connectButton_clicked()
 // Setup QT signal/slots for reading and error handling
 // The readyRead signal from the QAbstractSocket is linked to the onDataAvailable slot
         connect(socket, SIGNAL(readyRead()), this, SLOT(onDataAvailable()));
+// Obtain the address and port from the edit boxes.
+        connectAddress = PowerManagementMainUi.tcpAddressEdit->text();
+        connectPort = PowerManagementMainUi.tcpPortEdit->text().toUInt();
 // Connect to the host
         blockSize = 0;
         QMessageBox msgBox;

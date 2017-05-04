@@ -47,7 +47,7 @@ typedef enum {battery1UnderVoltage, battery2UnderVoltage, battery3UnderVoltage,
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyUSB0"
 #define DEFAULT_BAUDRATE    4
-#define DEFAULT_TCP_ADDRESS "192.168.2.14"
+#define DEFAULT_TCP_ADDRESS "192.168.2.16"
 #define DEFAULT_TCP_PORT    6666
 
 #define millisleep(a) usleep(a*1000)

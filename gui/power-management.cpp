@@ -56,16 +56,16 @@ Uses: Qt version 4.8.1
 int main(int argc,char ** argv)
 {
 /* Interpret any command line options */
-    QString serialDevice = DEFAULT_SERIAL_PORT;
-    uint initialBaudrate = DEFAULT_BAUDRATE;
-    QString tcpAddress = DEFAULT_TCP_ADDRESS;
-    uint tcpPort = DEFAULT_TCP_PORT;
-    int baudParm;
-    int c;
+    char c;
     opterr = 0;
 #ifdef SERIAL
+    QString serialDevice = DEFAULT_SERIAL_PORT;
+    uint initialBaudrate = DEFAULT_BAUDRATE;
+    int baudParm;
     while ((c = getopt (argc, argv, "P:b:")) != -1)
 #else
+    QString tcpAddress = DEFAULT_TCP_ADDRESS;
+    uint tcpPort = DEFAULT_TCP_PORT;
     while ((c = getopt (argc, argv, "a:p:")) != -1)
 #endif
     {
@@ -97,9 +97,11 @@ int main(int argc,char ** argv)
 // TCP address
         case 'a':
             tcpAddress = optarg;
+            break;
 // TCP port number
         case 'p':
             tcpPort = atoi(optarg);
+            break;
 #endif
 // Unknown
         case '?':
