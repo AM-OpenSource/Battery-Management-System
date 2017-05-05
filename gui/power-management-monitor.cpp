@@ -45,7 +45,8 @@ Parts of QWT 6.1.0 examples "realtime" were adapted for this code.
 
 #include "power-management-main.h"
 #include "power-management-monitor.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QApplication>
 #include <QString>
 #include <QLineEdit>
@@ -117,7 +118,7 @@ public:
 */
 
 #ifdef SERIAL
-PowerManagementMonitorGui::PowerManagementMonitorGui(SerialPort* p, QWidget* parent)
+PowerManagementMonitorGui::PowerManagementMonitorGui(QSerialPort* p, QWidget* parent)
                                                     : QDialog(parent)
 {
     socket = p;

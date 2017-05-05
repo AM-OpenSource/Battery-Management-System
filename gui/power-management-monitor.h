@@ -27,11 +27,12 @@
 
 #ifndef POWER_MANAGEMENT_MONITOR_H
 #define POWER_MANAGEMENT_MONITOR_H
-#define _TTY_POSIX_         // Need to tell qextserialport we are in POSIX
+#define _TTY_POSIX_
 
 #include "power-management.h"
 #include "ui_power-management-monitor.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <qwt_plot.h>
 #include <QDialog>
 #include <QtNetwork>
@@ -54,7 +55,7 @@ class PowerManagementMonitorGui : public QDialog
     Q_OBJECT
 public:
 #ifdef SERIAL
-    PowerManagementMonitorGui(SerialPort* socket, QWidget* parent = 0);
+    PowerManagementMonitorGui(QSerialPort* socket, QWidget* parent = 0);
 #else
     PowerManagementMonitorGui(QTcpSocket* socket, QWidget* parent = 0);
 #endif
@@ -74,7 +75,7 @@ private:
 // User Interface object instance
     Ui::PowerManagementMonitorDialog PowerManagementMonitorUi;
 #ifdef SERIAL
-    SerialPort *socket;           //!< Serial port object pointer
+    QSerialPort *socket;           //!< Serial port object pointer
 #else
     QTcpSocket *socket;
 #endif

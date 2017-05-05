@@ -30,7 +30,8 @@ Recording is started and stopped, at which the file is closed.
 
 #include "power-management-main.h"
 #include "power-management-record.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QApplication>
 #include <QString>
 #include <QLineEdit>
@@ -59,7 +60,7 @@ The directory listing is obtained from the remote unit.
 */
 
 #ifdef SERIAL
-PowerManagementRecordGui::PowerManagementRecordGui(SerialPort* p, QWidget* parent)
+PowerManagementRecordGui::PowerManagementRecordGui(QSerialPort* p, QWidget* parent)
                                                     : QDialog(parent)
 {
     socket = p;
@@ -78,7 +79,7 @@ PowerManagementRecordGui::PowerManagementRecordGui(QTcpSocket* tcpSocket, QWidge
     PowerManagementRecordUi.fileTableView->setGridStyle(Qt::NoPen);
     PowerManagementRecordUi.fileTableView->setShowGrid(false);
     QHeaderView *verticalHeader = PowerManagementRecordUi.fileTableView->verticalHeader();
-    verticalHeader->setResizeMode(QHeaderView::Fixed);
+    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader->setDefaultSectionSize(18);
     row = 0;
 // Signal to process a click on a directory item
@@ -199,7 +200,7 @@ void PowerManagementRecordGui::onMessageReceived(const QString &response)
     QStringList breakdown = response.split(",");
     QString command = breakdown[0].right(1);
 // Error Code
-    switch (command[0].toAscii())
+    switch (command[0].toLatin1())
     {
 // Show Free Space
         case 'F':

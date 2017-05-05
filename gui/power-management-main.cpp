@@ -40,7 +40,8 @@ socat /dev/ttyUSB0,echo=0,ispeed=115200,ospeed=115200,raw tcp-l:6666,reuseaddr,f
 #include "power-management-record.h"
 #include "power-management-monitor.h"
 #include "power-management-configure.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QApplication>
 #include <QString>
 #include <QLineEdit>
@@ -59,6 +60,8 @@ socat /dev/ttyUSB0,echo=0,ispeed=115200,ospeed=115200,raw tcp-l:6666,reuseaddr,f
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
+
+const qint32 bauds[8] = {1200,2400,4800,9600,19200,38400,57600,115200};
 
 //-----------------------------------------------------------------------------
 /** Power Management Main Window Constructor
@@ -235,7 +238,7 @@ void PowerManagementGui::setSourceComboBox(int index)
     PowerManagementMainUi.sourceComboBox->setCurrentIndex(index);
 
     QStringList baudrates;
-    baudrates << "2400" << "4800" << "9600" << "19200" << "38400" << "57600" << "115200";
+    for (uint i=0; i<8; i++) baudrates << QString("%1").arg(bauds[i]);
     PowerManagementMainUi.baudrateComboBox->addItems(baudrates);
     PowerManagementMainUi.baudrateComboBox->setCurrentIndex(DEFAULT_BAUDRATE);
 }
@@ -1911,9 +1914,16 @@ void PowerManagementGui::on_connectButton_clicked()
     if (socket == NULL)
     {
         serialDevice = PowerManagementMainUi.sourceComboBox->currentText();
-        socket = new SerialPort(serialDevice);
-        if (socket->initPort(baudrate,100))
+        if (socket != NULL) delete socket;
+        socket = new QSerialPort(serialDevice);
+        bool ok = socket->open(QIODevice::ReadWrite);
+        if (ok)
         {
+            socket->setBaudRate(bauds[baudrate]);
+            socket->setDataBits(QSerialPort::Data8);
+            socket->setParity(QSerialPort::NoParity);
+            socket->setStopBits(QSerialPort::OneStop);
+            socket->setFlowControl(QSerialPort::NoFlowControl);
             connect(socket, SIGNAL(readyRead()), this, SLOT(onDataAvailable()));
             PowerManagementMainUi.connectButton->setText("Disconnect");
 /* Turn on microcontroller communications */
@@ -1981,3 +1991,5 @@ void PowerManagementGui::on_connectButton_clicked()
     }
 #endif
 }
+
+

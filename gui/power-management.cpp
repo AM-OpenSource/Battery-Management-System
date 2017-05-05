@@ -81,13 +81,14 @@ int main(int argc,char ** argv)
             baudParm = atoi(optarg);
             switch (baudParm)
             {
-            case 2400: initialBaudrate=0;break;
-            case 4800: initialBaudrate=1;break;
-            case 9600: initialBaudrate=2;break;
-            case 19200: initialBaudrate=3;break;
-            case 38400: initialBaudrate=4;break;
-            case 57600: initialBaudrate=5;break;
-            case 115200: initialBaudrate=6;break;
+            case 1200: initialBaudrate=0;break;
+            case 2400: initialBaudrate=1;break;
+            case 4800: initialBaudrate=2;break;
+            case 9600: initialBaudrate=3;break;
+            case 19200: initialBaudrate=4;break;
+            case 38400: initialBaudrate=5;break;
+            case 57600: initialBaudrate=6;break;
+            case 115200: initialBaudrate=7;break;
             default:
                 fprintf (stderr, "Invalid Baudrate %i.\n", baudParm);
                 return false;

@@ -27,7 +27,8 @@ algorithmic configurations, calibration and general operational configuration.
 
 #include "power-management-main.h"
 #include "power-management-configure.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QApplication>
 #include <QString>
 #include <QLineEdit>
@@ -53,7 +54,7 @@ algorithmic configurations, calibration and general operational configuration.
 */
 
 #ifdef SERIAL
-PowerManagementConfigGui::PowerManagementConfigGui(SerialPort* p, QWidget* parent)
+PowerManagementConfigGui::PowerManagementConfigGui(QSerialPort* p, QWidget* parent)
                                                     : QDialog(parent)
 {
     socket = p;

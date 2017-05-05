@@ -30,7 +30,8 @@
 
 #include "ui_power-management-main.h"
 #include "power-management.h"
-#include "serialport.h"
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QTcpSocket>
 #include <QDir>
 #include <QFile>
@@ -46,7 +47,7 @@ typedef enum {battery1UnderVoltage, battery2UnderVoltage, battery3UnderVoltage,
               IndicatorType;
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyUSB0"
-#define DEFAULT_BAUDRATE    4
+#define DEFAULT_BAUDRATE    5
 #define DEFAULT_TCP_ADDRESS "192.168.2.16"
 #define DEFAULT_TCP_PORT    6666
 
@@ -126,9 +127,9 @@ private:
     QString errorMessage;
     QString response;
 #ifdef SERIAL
-    SerialPort* socket;           //!< Serial port object pointer
+    QSerialPort* socket;           //!< Serial port object pointer
 #else
-    QTcpSocket *socket;
+    QTcpSocket* socket;
 #endif
     bool validsocket();
     quint16 blockSize;
