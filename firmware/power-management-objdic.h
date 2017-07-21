@@ -214,7 +214,11 @@ assumed that float phase is ended). */
 #define REST_SoC            70*256  /* 70% */
 
 /* SoC hysteresis value when changing batteries under charge. */
-#define SoC_HYSTERESIS       5*256  /* 5% */
+#define SoC_HYSTERESIS      5*256  /* 5% */
+
+/* Number of cycles that a battery in absorption state charge is below the
+current limit needed to enter float stage. */
+#define FLOAT_DELAY_LIMIT   10
 /*--------------------------------------------------------------------------*/
 /****** Object Dictionary Items *******/
 /* Configuration items, updated externally, are stored to NVM */

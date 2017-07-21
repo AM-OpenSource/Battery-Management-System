@@ -99,6 +99,7 @@ static uint16_t dutyCycle[NUM_BATS];
 static uint16_t dutyCycleMax;
 static uint32_t absorptionPhaseTime[NUM_BATS];   /* time in absorption */
 static int16_t absorptionPhaseCurrent[NUM_BATS];
+static uint8_t floatDelayCount[NUM_BATS];   /* Below float limit persistence */
 
 /*--------------------------------------------------------------------------*/
 /** @brief Charging Task
@@ -113,7 +114,7 @@ void prvChargerTask(void *pvParameters)
 
     initGlobals();
 
-    while (1)
+    while (true)
     {
         uint32_t minimumRestTime = (uint32_t)(configData.config.restTime*1024)/getChargerDelay();
         uint32_t floatDelay = (uint32_t)(configData.config.floatTime*1024)/getChargerDelay();
@@ -276,17 +277,23 @@ exceeded. */
 threshold. This is done on the averaged current as rapid response is not
 essential. (Note: measured currents are negative while charging). Ignore samples
 where the source voltage drops causing the battery voltage and current to fall.
+The current must be below the limit for a number of consecutive cycles.
 When the change occurs, force the SoC to 100%. This may not be correct if
 the battery is faulty with a low terminal voltage, but that case is handled
 by the resetBattery function. */
-                    if ((-getCurrentAv(index) < getFloatStageCurrent(index)) &&
-                        (getVoltageAv(index) >
+                    if ((-getCurrentAv(index) < getFloatStageCurrent(index))
+                        && (getVoltageAv(index) >
                             (245*voltageLimit(getAbsorptionVoltage(index)))/256))
                     {
-                        setBatteryChargingPhase(index,floatC);
-                        absorptionPhaseTime[index] = 0;
-                        resetBatterySoC(battery-1);
+                        if (floatDelayCount[index]++ > FLOAT_DELAY_LIMIT)
+                        {
+                            setBatteryChargingPhase(index,floatC);
+                            absorptionPhaseTime[index] = 0;
+                            floatDelayCount[index] = 0;
+                            resetBatterySoC(battery-1);
+                        }
                     }
+                    else floatDelayCount[index] = 0;
 
 /**
 <li> Manage the absorption phase voltage limit. */
@@ -365,6 +372,7 @@ void initGlobals(void)
         absorptionPhaseTime[i] = 0;
         absorptionPhaseCurrent[i] = 0;
         dutyCycle[i] = 100*256;              /* percentage times 256 */
+        floatDelayCount[i] = 0;
     }
     resetChargeAlgorithm();
     dutyCycleMax = 100*256;
