@@ -82,7 +82,7 @@ private slots:
     void on_battery2Checkbox_clicked();
     void on_battery3Checkbox_clicked();
     void on_statesPlotCheckbox_clicked();
-    void on_faultReportFileSelectButton_clicked();
+    void on_analysisFileSelectButton_clicked();
 private:
 // User Interface object instance
     Ui::DataProcessingMainWindow DataProcessingMainUi;
@@ -92,6 +92,7 @@ private:
     void displayErrorMessage(QString message);
     QDateTime findFirstTimeRecord(QFile* inFile);
     bool openSaveFile(void);
+    bool outfileMessage(QString filename, bool* append);
     QStringList recordType;
     QStringList recordText;
     QFile* inFile;

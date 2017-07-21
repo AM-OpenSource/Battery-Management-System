@@ -995,24 +995,29 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
 }
 
 //-----------------------------------------------------------------------------
-/** @brief Select File to be analysed for faults
+/** @brief Analysis of CSV files for various performance indicators.
 
-The file is analysed for a variety of faults (TBD). The results are printed out
-to a report file.
+The file is analysed for a variety of faults and other performance indicators.
+
+The results are printed out to a report file.
+
 - Situations where the charger is not allocated but a battery is ready. To show
   this look for no battery under charge and panel voltage above any battery.
-  Prnt the op state, charging phase, battery and panel voltages, switches,
+  Print the op state, charging phase, battery and panel voltages, switches,
   decision and indicators.
+
+- Battery current during the charging phase to show in particular how the float
+  state is reached and if this is a true indication of a battery being fully
+  charged.
+
+- Solar current input derived from all batteries as they are charged in the bulk
+  phase. This may cut short during any one day if all batteries enter the float
+  state and the charger is de-allocated.
 */
 
-void DataProcessingGui::on_faultReportFileSelectButton_clicked()
+void DataProcessingGui::on_analysisFileSelectButton_clicked()
 {
-// Create a report filename
-    QString reportFilename = QString("fault-report")
-                        .append(".csv");
-    QDir saveDirectory = fileInfo.absolutePath();
-    QString saveFile = saveDirectory.filePath(reportFilename);
-// Get data file
+// Get the input data file
     QString inputFilename = QFileDialog::getOpenFileName(0,
                                 "Data File","./","CSV Files (*.csv)");
     if (inputFilename.isEmpty()) return;
@@ -1021,140 +1026,283 @@ void DataProcessingGui::on_faultReportFileSelectButton_clicked()
     if (! inFile->open(QIODevice::ReadOnly)) return;
     QTextStream inStream(inFile);
 
-    bool header = true;
-// If report filename exists, decide what action to take.
-// Build a message box with options
-    if (QFile::exists(saveFile))
+// Create a unique output report filename from the input filename and date-time
+    QFileInfo inputFileInfo(inFile->fileName());
+    QString inputFileStub(inputFileInfo.fileName());
+    QDateTime local(QDateTime::currentDateTime());
+    QString localTimeDate = local.toTimeSpec(Qt::LocalTime)
+                                 .toString("yyyy-MM-dd-hh-mm-ss");
+    localTimeDate.remove(QChar('-'));
+    QString outFileQualifier = QString("-").append(inputFileStub
+                              .left(inputFileStub.size()-4))
+                              .append("-").append(localTimeDate).append(".csv");
+    QDir saveDirectory = fileInfo.absolutePath();
+
+// Analysis for faults.
+    if (DataProcessingMainUi.faultAnalysisCheckbox->isChecked())
     {
-        QMessageBox msgBox;
-        msgBox.setText(QString("A previous save file ").append(reportFilename).
-                        append(" exists."));
-// Overwrite the existing file
-        QPushButton *overwriteButton = msgBox.addButton(tr("Overwrite"),
-                         QMessageBox::AcceptRole);
-// Append to the existing file
-        QPushButton *appendButton = msgBox.addButton(tr("Append"),
-                         QMessageBox::AcceptRole);
-// Quit altogether
-        QPushButton *abortButton = msgBox.addButton(tr("Abort"),
-                         QMessageBox::AcceptRole);
-        msgBox.exec();
-        if (msgBox.clickedButton() == overwriteButton)
+        QString reportFilename = QString("fault").append(outFileQualifier);
+        bool header = true;
+        if (outfileMessage(reportFilename, &header)) return; // Abort processing
+// This will write to the file as created above, or append to the existing file.
+        QFile* outFile = new QFile(reportFilename);   // Open file for output
+        if (! outFile->open(QIODevice::WriteOnly | QIODevice::Append
+                                                 | QIODevice::Text))
         {
-            QFile::remove(saveFile);
-        }
-        else if (msgBox.clickedButton() == abortButton)
-        {
+            displayErrorMessage("Could not open the output file");
             return;
         }
-// Don't write the header into the appended file
-        else if (msgBox.clickedButton() == appendButton)
-        {
-            header = false;
-        }
-    }
-// This will write to the file as created above, or append to the existing file.
-    QFile* outFile = new QFile(reportFilename);   // Open file for output
-    if (! outFile->open(QIODevice::WriteOnly | QIODevice::Append
-                                             | QIODevice::Text))
-    {
-        displayErrorMessage("Could not open the output file");
-        return;
-    }
-    QTextStream outStream(outFile);
+        QTextStream outStream(outFile);
 
 // Build header
-    if (header)
-    {
-        outStream << "Time,";
-        outStream << "B1 Op," << "B1 Charge,";
-        outStream << "B2 Op," << "B2 Charge,";
-        outStream << "B3 Op," << "B3 Charge,";
-        outStream << "B1 V," << "B2 V," << "B3 V," << "M1 V,";
-        outStream << "Switches," << "Decisions," << "Indicators";
-        outStream << "\n\r";
-    }
+        if (header)
+        {
+            outStream << "Time,";
+            outStream << "B1 Op," << "B1 Charge,";
+            outStream << "B2 Op," << "B2 Charge,";
+            outStream << "B3 Op," << "B3 Charge,";
+            outStream << "B1 V," << "B2 V," << "B3 V," << "M1 V,";
+            outStream << "Switches," << "Decisions," << "Indicators";
+            outStream << "\n\r";
+        }
 // Read in data from input file
 // Skip first line as it may be a header
-    inFile->seek(0);      // rewind input file
-  	QString lineIn;
-    lineIn = inStream.readLine();
-    bool startRun = true;
+        inFile->seek(0);      // rewind input file
+      	QString lineIn;
+        lineIn = inStream.readLine();
+        bool startRun = true;
 // Index increments by about 0.5 seconds
-// To have x-axis in date-time index must be "double" type, ie ms since epoch.
-    double index = 0;
-    QDateTime startTime;
-    QDateTime previousTime;
-    while (! inStream.atEnd())
-    {
-      	lineIn = inStream.readLine();
-        QStringList breakdown = lineIn.split(",");
-        int size = breakdown.size();
-        if (size == 36)
+// To have x-axis in date-time, index must be "double" type, ie ms since epoch.
+        double index = 0;
+        QDateTime startTime;
+        QDateTime previousTime;
+        while (! inStream.atEnd())
         {
-            QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
-            if (time.isValid())
+          	lineIn = inStream.readLine();
+            QStringList breakdown = lineIn.split(",");
+            int size = breakdown.size();
+            if (size == 36)
             {
-// On the first run get the start time
-                if (startRun)
+                QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
+                if (time.isValid())
                 {
-                    startRun = false;
-                    startTime = time;
-                    previousTime = startTime;
-                    index = startTime.toMSecsSinceEpoch();
-                }
+// On the first run get the start time
+                    if (startRun)
+                    {
+                        startRun = false;
+                        startTime = time;
+                        previousTime = startTime;
+                        index = startTime.toMSecsSinceEpoch();
+                    }
 // Try to keep index and time in sync to account for jumps in time.
 // Index is counting half seconds and time from records is integer seconds only.
-                if (previousTime == time) index += 500;
-                else index = time.toMSecsSinceEpoch();
+                    if (previousTime == time) index += 500;
+                    else index = time.toMSecsSinceEpoch();
 
 // Analyse for faults.
 // Look for charger not allocated but not all batteries in float or rest.
-                float battery1Voltage = breakdown[2].simplified().toFloat();
-                float battery2Voltage = breakdown[8].simplified().toFloat();
-                float battery3Voltage = breakdown[14].simplified().toFloat();
-                float panel1Voltage = breakdown[24].simplified().toFloat();
-                QString opState1 = breakdown[4].simplified();
-                QString opState2 = breakdown[10].simplified();
-                QString opState3 = breakdown[16].simplified();
-                QString chargeState1 = breakdown[5].simplified();
-                QString chargeState2 = breakdown[11].simplified();
-                QString chargeState3 = breakdown[17].simplified();
-                QString chargeMode1 = breakdown[6].simplified();
-                QString chargeMode2 = breakdown[12].simplified();
-                QString chargeMode3 = breakdown[18].simplified();
-                if ((opState1 != "Charge") &&
-                    (opState2 != "Charge") &&
-                    (opState3 != "Charge") &&
-                    (((chargeMode1 != "Float") && (chargeMode1 != "Rest")
-                                                   && (panel1Voltage > battery1Voltage)) ||
-                    ((chargeMode2 != "Float") && (chargeMode2 != "Rest")
-                                                   && (panel1Voltage > battery2Voltage)) ||
-                    ((chargeMode3 != "Float") && (chargeMode3 != "Rest")
-                                                   && (panel1Voltage > battery3Voltage))))
-                {
-                    outStream << breakdown[0].simplified() << ",";
-                    outStream << opState1 << ",";
-                    outStream << chargeMode1 << ",";
-                    outStream << opState2 << ",";
-                    outStream << chargeMode2 << ",";
-                    outStream << opState3 << ",";
-                    outStream << chargeMode3 << ",";
-                    outStream << battery1Voltage << ",";
-                    outStream << battery2Voltage << ",";
-                    outStream << battery3Voltage << ",";
-                    outStream << panel1Voltage << ",";
-                    outStream << breakdown[27].simplified() << ",";
-                    outStream << breakdown[28].simplified() << ",";
-                    outStream << breakdown[29].simplified();
-//                    outStream << lineIn;
-                    outStream << "\n\r";
+                    float battery1Voltage = breakdown[2].simplified().toFloat();
+                    float battery2Voltage = breakdown[8].simplified().toFloat();
+                    float battery3Voltage = breakdown[14].simplified().toFloat();
+                    float panel1Voltage = breakdown[24].simplified().toFloat();
+                    QString opState1 = breakdown[4].simplified();
+                    QString opState2 = breakdown[10].simplified();
+                    QString opState3 = breakdown[16].simplified();
+                    QString chargeState1 = breakdown[5].simplified();
+                    QString chargeState2 = breakdown[11].simplified();
+                    QString chargeState3 = breakdown[17].simplified();
+                    QString chargeMode1 = breakdown[6].simplified();
+                    QString chargeMode2 = breakdown[12].simplified();
+                    QString chargeMode3 = breakdown[18].simplified();
+                    if ((opState1 != "Charge") &&
+                        (opState2 != "Charge") &&
+                        (opState3 != "Charge") &&
+                        (((chargeMode1 != "Float") && (chargeMode1 != "Rest")
+                                                       && (panel1Voltage > battery1Voltage)) ||
+                        ((chargeMode2 != "Float") && (chargeMode2 != "Rest")
+                                                       && (panel1Voltage > battery2Voltage)) ||
+                        ((chargeMode3 != "Float") && (chargeMode3 != "Rest")
+                                                       && (panel1Voltage > battery3Voltage))))
+                    {
+                        outStream << breakdown[0].simplified() << ",";
+                        outStream << opState1 << ",";
+                        outStream << chargeMode1 << ",";
+                        outStream << opState2 << ",";
+                        outStream << chargeMode2 << ",";
+                        outStream << opState3 << ",";
+                        outStream << chargeMode3 << ",";
+                        outStream << battery1Voltage << ",";
+                        outStream << battery2Voltage << ",";
+                        outStream << battery3Voltage << ",";
+                        outStream << panel1Voltage << ",";
+                        outStream << breakdown[27].simplified() << ",";
+                        outStream << breakdown[28].simplified() << ",";
+                        outStream << breakdown[29].simplified();
+    //                    outStream << lineIn;
+                        outStream << "\n\r";
+                    }
                 }
             }
         }
+        outFile->close();
+        delete outFile;
     }
-    outFile->close();
-    delete outFile;
+// Analyse file to extract battery charger data. Each battery is treated
+// independently and data for each is printed to a different output file.
+// Values of voltage and current are extracted following a short settling
+// period after the charger is applied. Charge state is also given.
+    if (DataProcessingMainUi.chargerAnalysisCheckbox->isChecked())
+    {
+        for (int i=0; i<3; i++)
+        {
+            QString reportFilename = QString("charging-B%1").arg(i)
+                                     .append(outFileQualifier);
+            bool header = true;
+            if (outfileMessage(reportFilename, &header)) return; // Abort processing
+// This will write to the file as created above, or append to the existing file.
+            QFile* outFile = new QFile(reportFilename);   // Open file for output
+            if (! outFile->open(QIODevice::WriteOnly | QIODevice::Append
+                                                     | QIODevice::Text))
+            {
+                displayErrorMessage("Could not open the output file");
+                return;
+            }
+            QTextStream outStream(outFile);
+
+// Build header
+            if (header)
+            {
+                outStream << "Time,";
+                outStream << "Mode,";
+                outStream << "V," << "I,";
+                outStream << "\n\r";
+            }
+// Read in data from input file
+// Skip first line as it may be a header
+            inFile->seek(0);                // rewind input file
+          	QString lineIn;
+            lineIn = inStream.readLine();
+            while (! inStream.atEnd())
+            {
+              	lineIn = inStream.readLine();
+                QStringList breakdown = lineIn.split(",");
+                int size = breakdown.size();
+                if (size == 36)
+                {
+                    QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
+                    if (time.isValid())
+                    {
+
+// Look for charger allocated and battery not in rest
+                        float batteryVoltage = breakdown[2+6*i].simplified().toFloat();
+                        float batteryCurrent = breakdown[1+6*i].simplified().toFloat();
+                        QString opState = breakdown[4+6*i].simplified();
+                        QString chargeState = breakdown[5+6*i].simplified();
+                        QString chargeMode = breakdown[6+6*i].simplified();
+                        if ((opState == "Charge") &&
+                            (chargeMode != "Rest"))
+                        {
+                            outStream << breakdown[0].simplified() << ",";
+                            outStream << chargeMode << ",";
+                            outStream << batteryVoltage << ",";
+                            outStream << batteryCurrent;
+                            outStream << "\n\r";
+                        }
+                    }
+                }
+            }
+            outFile->close();
+            delete outFile;
+        }
+    }
+// Analyse file to extract solar current data from all batteries.
+// This is extracted when a battery is in bulk charge.
+// Do not output the first record when a battery enters bulk charge to avoid
+// inaccuracies due to delays between the state change and the measurement.
+    if (DataProcessingMainUi.solarAnalysisCheckbox->isChecked())
+    {
+        bool firstRecord = true;
+        QString reportFilename = QString("solar").append(outFileQualifier);
+        bool header = true;
+        if (outfileMessage(reportFilename, &header)) return; // Abort processing
+// This will write to the file as created above, or append to the existing file.
+        QFile* outFile = new QFile(reportFilename);   // Open file for output
+        if (! outFile->open(QIODevice::WriteOnly | QIODevice::Append
+                                                 | QIODevice::Text))
+        {
+            displayErrorMessage("Could not open the output file");
+            return;
+        }
+        QTextStream outStream(outFile);
+
+// Build header
+        if (header)
+        {
+            outStream << "Time,";
+            outStream << "V," << "I,";
+            outStream << "\n\r";
+        }
+// Read in data from input file
+// Skip first line as it may be a header
+        inFile->seek(0);                // rewind input file
+      	QString lineIn;
+        lineIn = inStream.readLine();
+        while (! inStream.atEnd())
+        {
+          	lineIn = inStream.readLine();
+            QStringList breakdown = lineIn.split(",");
+            int size = breakdown.size();
+            if (size == 36)
+            {
+                QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
+                if (time.isValid())
+                {
+
+// Look for charger allocated and battery in bulk
+                    float battery1Voltage = breakdown[2].simplified().toFloat();
+                    float battery2Voltage = breakdown[8].simplified().toFloat();
+                    float battery3Voltage = breakdown[14].simplified().toFloat();
+                    float battery1Current = breakdown[1].simplified().toFloat();
+                    float battery2Current = breakdown[7].simplified().toFloat();
+                    float battery3Current = breakdown[13].simplified().toFloat();
+                    QString op1State = breakdown[4].simplified();
+                    QString op2State = breakdown[10].simplified();
+                    QString op3State = breakdown[16].simplified();
+                    QString charge1Mode = breakdown[6].simplified();
+                    QString charge2Mode = breakdown[12].simplified();
+                    QString charge3Mode = breakdown[18].simplified();
+                    if (firstRecord) firstRecord = false;
+                    else
+                    {
+                        if ((op1State == "Charge") && (charge1Mode == "Bulk"))
+                        {
+                            outStream << breakdown[0].simplified() << ",";
+                            outStream << battery1Voltage << ",";
+                            outStream << battery1Current;
+                            outStream << "\n\r";
+                        }
+                        else if ((op2State == "Charge") && (charge2Mode == "Bulk"))
+                        {
+                            outStream << breakdown[0].simplified() << ",";
+                            outStream << battery2Voltage << ",";
+                            outStream << battery2Current;
+                            outStream << "\n\r";
+                        }
+                        else if ((op3State == "Charge") && (charge3Mode == "Bulk"))
+                        {
+                            outStream << breakdown[0].simplified() << ",";
+                            outStream << battery3Voltage << ",";
+                            outStream << battery3Current;
+                            outStream << "\n\r";
+                        }
+                        else firstRecord = true;
+                    }
+                }
+            }
+        }
+        outFile->close();
+        delete outFile;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -1642,5 +1790,53 @@ void DataProcessingGui::scanFile(QFile* inFile)
 void DataProcessingGui::displayErrorMessage(QString message)
 {
     DataProcessingMainUi.errorMessageLabel->setText(message);
+}
+
+//-----------------------------------------------------------------------------
+/** @brief Message box for output file exists.
+
+Checks the existence of a specified file and asks for decisions about its
+use: abort, overwrite, or append.
+
+@param[in] QString filename: name of output file.
+@param[out] bool* append: true if append was selected.
+@returns true if abort was selected.
+*/
+
+bool DataProcessingGui::outfileMessage(QString filename, bool* append)
+{
+    QString saveFile = saveDirectory.filePath(filename);
+// If report filename exists, decide what action to take.
+// Build a message box with options
+    if (QFile::exists(saveFile))
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString("A previous save file ").append(filename).
+                        append(" exists."));
+// Overwrite the existing file
+        QPushButton *overwriteButton = msgBox.addButton(tr("Overwrite"),
+                         QMessageBox::AcceptRole);
+// Append to the existing file
+        QPushButton *appendButton = msgBox.addButton(tr("Append"),
+                         QMessageBox::AcceptRole);
+// Quit altogether
+        QPushButton *abortButton = msgBox.addButton(tr("Abort"),
+                         QMessageBox::AcceptRole);
+        msgBox.exec();
+        if (msgBox.clickedButton() == overwriteButton)
+        {
+            QFile::remove(saveFile);
+        }
+        else if (msgBox.clickedButton() == abortButton)
+        {
+            return true;
+        }
+// Don't write the header into the appended file
+        else if (msgBox.clickedButton() == appendButton)
+        {
+            *append = true;
+        }
+    }
+    return false;
 }
 

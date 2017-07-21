@@ -257,7 +257,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Extracts and interprets all data between given times in csv form and splits into individual day files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Extracts and interprets all data between given times in csv form and splits into individual day files midnight to midnight.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Day Split</string>
@@ -271,6 +271,9 @@
       <width>131</width>
       <height>131</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Energy balance (AH) for all batteries and sources over the given time interval</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -343,6 +346,9 @@
        <weight>75</weight>
        <bold>true</bold>
       </font>
+     </property>
+     <property name="toolTip">
+      <string>Energy balance (AH) for all batteries and sources over the given time interval</string>
      </property>
      <property name="text">
       <string>Energy Analysis</string>
@@ -690,17 +696,17 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QFrame" name="faultFrame">
+   <widget class="QFrame" name="dataAnalysisFrame">
     <property name="geometry">
      <rect>
-      <x>5</x>
-      <y>350</y>
-      <width>131</width>
-      <height>106</height>
+      <x>390</x>
+      <y>465</y>
+      <width>321</width>
+      <height>131</height>
      </rect>
     </property>
     <property name="toolTip">
-     <string>Analyse combined data file for instances where the charger is not allocated when it could be.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analysis of combined data files for performance tracking. Results are printed to individual files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -708,7 +714,7 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="faultLabel">
+    <widget class="QLabel" name="dataAnalysisLabel">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -723,11 +729,14 @@
        <bold>true</bold>
       </font>
      </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analysis of combined data files for performance tracking. Results are printed to individual files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
-      <string>Fault Analysis</string>
+      <string>Data Analysis</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="faultReportFileSelectButton">
+    <widget class="QPushButton" name="analysisFileSelectButton">
      <property name="geometry">
       <rect>
        <x>15</x>
@@ -737,10 +746,67 @@
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the csv file to be plotted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the csv file to be analysed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>CSV File</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="faultAnalysisCheckbox">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>10</y>
+       <width>116</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Analyse combined data file for instances where the charger is not allocated when it could be.</string>
+     </property>
+     <property name="text">
+      <string>Fault Analysis</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chargerAnalysisCheckbox">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>35</y>
+       <width>141</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analyse combined data file to extract voltage and current during charging of each battery up to entry to float phase.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Charger Analysis</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="solarAnalysisCheckbox">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>60</y>
+       <width>156</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Analyse combined data file to extract current from solar panels flowing to batteries in bulk phase.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Solar Input Analysis</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
      </property>
     </widget>
    </widget>
