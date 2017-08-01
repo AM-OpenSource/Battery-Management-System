@@ -951,8 +951,9 @@ int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type)
 {
     int32_t soc;
     int32_t v100, v50, v25;
-    if (type == wetT) v100 = 3242;
-    else v100 = 3280;
+    if (type == wetT)
+        v100 = 3242;                /* 12.66 */
+    else v100 = 3280;               /* 12.81 */
 /* Difference between top temperature 48.9C and ambient, times 64. */
     uint32_t tDiff = (12518-temperature) >> 2;
 /* Correction factor to apply to measured voltages, times 65536. */
@@ -960,17 +961,20 @@ int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type)
 /* Open circuit voltage referred to 48.9C */
     int32_t ocv = (voltage*65536)/vFactor;
 /* SoC for Wet cell and part of Gel cell */
-    soc = (100*(65536 - 320*(v100-ocv))) >> 8;
-    if (type == gelT)
+    soc = 100*(65536 - 320*(v100-ocv));
+/* Ca/Ca battery types */
+    if ((type == gelT) || (type == agmT))
     {
-        v50 = 3178;
+/* Change slope for low SoC values as per documentation */
+        v50 = 3178;                 /* 12.41 */
         if (ocv < v50)
         {
-            v25 = 3075;
-            if (ocv > v25) soc = (100*(65536 - 640*(v50-ocv))) >> 8;
-            else soc = (100*(65536 - 320*(v25-ocv))) >> 8;
+            v25 = 3075;             /* 12.01 */
+            if (ocv > v25) soc = soc + 100*160*(v50-ocv);
+            else soc = soc + 100*160*(v50-v25);
         }
     }
+    soc = (soc >> 8);               /* Adjust back from 65536 to 256 scaling.*/
     if (soc > 100*256) soc = 100*256;
     if (soc < 0) soc = 0;
     return soc;
