@@ -888,7 +888,7 @@ void DataProcessingGui::on_plotFileSelectButton_clicked()
       	lineIn = inStream.readLine();
         QStringList breakdown = lineIn.split(",");
         int size = breakdown.size();
-        if (size == 36)
+        if (LINE_WIDTH)
         {
             QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
             if (time.isValid())
@@ -1081,7 +1081,7 @@ void DataProcessingGui::on_analysisFileSelectButton_clicked()
           	lineIn = inStream.readLine();
             QStringList breakdown = lineIn.split(",");
             int size = breakdown.size();
-            if (size == 36)
+            if (LINE_WIDTH)
             {
                 QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
                 if (time.isValid())
@@ -1187,7 +1187,7 @@ void DataProcessingGui::on_analysisFileSelectButton_clicked()
               	lineIn = inStream.readLine();
                 QStringList breakdown = lineIn.split(",");
                 int size = breakdown.size();
-                if (size == 36)
+                if (LINE_WIDTH)
                 {
                     QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
                     if (time.isValid())
@@ -1252,7 +1252,7 @@ void DataProcessingGui::on_analysisFileSelectButton_clicked()
           	lineIn = inStream.readLine();
             QStringList breakdown = lineIn.split(",");
             int size = breakdown.size();
-            if (size == 36)
+            if (size == LINE_WIDTH)
             {
                 QDateTime time = QDateTime::fromString(breakdown[0].simplified(),Qt::ISODate);
                 if (time.isValid())

@@ -42,6 +42,8 @@
 #define Voffset R9*Vref/R5
 #define Vscale (1+R4/R5)/(1+R9/R7)
 
+#define LINE_WIDTH 36
+
 #include "ui_data-processing-main.h"
 #include <QDialog>
 #include <QDir>
