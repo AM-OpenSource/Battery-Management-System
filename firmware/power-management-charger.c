@@ -204,7 +204,8 @@ absorption phase, otherwise change to rest phase. */
                         setBatteryChargingPhase(index,absorptionC);
                     for (i=0; i<NUM_BATS; i++)
                     {
-                        if (getBatteryChargingPhase(i) == bulkC)
+                        if ((getBatteryHealthState(i) != missingH) &&
+                            (getBatteryChargingPhase(i) == bulkC))
                         {
                             setBatteryChargingPhase(index,restC);
                             break;

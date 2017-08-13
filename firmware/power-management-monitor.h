@@ -62,6 +62,7 @@ void prvMonitorTask(void *pvParameters);
 int16_t getBatteryCurrentOffset(int battery);
 int16_t getLoadCurrentOffset(int load);
 int16_t getPanelCurrentOffset(int panel);
+battery_Hl_States getBatteryHealthState(int i);
 int16_t getBatterySoC(int battery);
 int16_t getBatteryUnderLoad(void);
 void setBatteryUnderLoad(int battery);

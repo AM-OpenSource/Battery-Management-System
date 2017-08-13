@@ -375,7 +375,8 @@ the SoC. The maximum charge is the battery capacity in ampere seconds
 /**
 <li> If a battery voltage falls below an absolute minimum dropout voltage, label
 it as a weak battery to get the charger with priority and avoid loads. */
-                if (batteryAbsVoltage < WEAK_VOLTAGE)
+                if ((battery[i].healthState != missingH) &&
+                    (batteryAbsVoltage < WEAK_VOLTAGE))
                 {
                     battery[i].healthState = weakH;
                     battery[i].fillState = criticalF;
@@ -384,7 +385,8 @@ it as a weak battery to get the charger with priority and avoid loads. */
 /**
 <li> Restore good health to a battery when the it enters rest phase. This will
 avoid thrashing when a battery is ailing. */
-                if (getBatteryChargingPhase(i) == restC)
+                if ((battery[i].healthState != missingH) &&
+                    (getBatteryChargingPhase(i) == restC))
                 {
                     battery[i].healthState = goodH;
                 }
@@ -410,27 +412,39 @@ to the start of the list and the lowest at the end. */
               }
             }
         }
+/* Repeat bubble sort to get all missing batteries to the far end where they
+will not be accessed. */
+        for (i=0; i<NUM_BATS-1; i++)
+        {
+            for (k=0; k<NUM_BATS-i-1; k++)
+            {
+              if (battery[batteryFillStateSort[k]-1].healthState == missingH)
+              {
+                temp = batteryFillStateSort[k];
+                batteryFillStateSort[k] = batteryFillStateSort[k+1];
+                batteryFillStateSort[k+1] = temp;
+              }
+            }
+        }
 /**
 <li> Find the batteries with the longest and shortest isolation times. */
         uint8_t longestBattery = 0;
         uint32_t longestTime = 0;
 /*        uint8_t shortestBattery = 0;
         uint32_t shortestTime = 0xFFFFFFFF; */
-        for (i=0; i<NUM_BATS; i++)
+        for (i=0; i<numBats; i++)
         {
-            if (battery[i].healthState != missingH)
+            if ((battery[i].healthState != missingH) &&
+                (battery[i].isolationTime > longestTime))
             {
-                if (battery[i].isolationTime > longestTime)
-                {
-                    longestTime = battery[i].isolationTime;
-                    longestBattery = i+1;
-                }
-/*                if (battery[i].isolationTime < shortestTime)
-                {
-                    shortestTime = battery[i].isolationTime;
-                    shortestBattery = i+1;
-                }*/
+                longestTime = battery[i].isolationTime;
+                longestBattery = i+1;
             }
+/*                if (battery[i].isolationTime < shortestTime)
+            {
+                shortestTime = battery[i].isolationTime;
+                shortestBattery = i+1;
+            }*/
         }
 /** </ul> */
 
@@ -460,11 +474,13 @@ one panel.
 <ul>
 <li> Change each battery to bulk phase if it is in float phase and the SoC drops
 below a charging restart threshold (default 95%). */
-        for (i=0; i<NUM_BATS; i++)
+        for (i=0; i<numBats; i++)
         {
-            if ((getBatteryChargingPhase(i) == floatC) &&
-                (getBatterySoC(i) < configData.config.floatBulkSoC))
-                setBatteryChargingPhase(i,bulkC);
+            uint8_t index = batteryFillStateSort[i];
+            if ((battery[index].healthState != missingH) &&
+                (getBatteryChargingPhase(index) == floatC) &&
+                (getBatterySoC(index) < configData.config.floatBulkSoC))
+                setBatteryChargingPhase(index,bulkC);
         }
 
 /**
@@ -487,9 +503,11 @@ deallocate the charger to allow the algorithms to find another battery. */
 turn off charging altogether. This will allow more flexibility in managing loads
 and isolation during night periods. */
         chargerOff = true;
-        for (i=0; i<NUM_BATS; i++)
+        for (i=0; i<numBats; i++)
         {
-            if (getBatteryVoltage(i) < (getPanelVoltage(0)+128))
+            uint8_t index = batteryFillStateSort[i];
+            if ((battery[index].healthState != missingH) &&
+                (getBatteryVoltage(index) < (getPanelVoltage(0)+128)))
             {
                 decisionStatus |= 0x100;
                 chargerOff = false;
@@ -502,9 +520,11 @@ and isolation during night periods. */
 <li> If all batteries are in float phase, disconnect the charger.
 </ul> */
         bool allInFloat = true;
-        for (i=0; i<NUM_BATS; i++)
+        for (i=0; i<numBats; i++)
         {
-            if (getBatteryChargingPhase(i) != floatC)
+            uint8_t index = batteryFillStateSort[i];
+            if ((battery[i].healthState != missingH) &&
+                (getBatteryChargingPhase(index) != floatC))
             {
                 allInFloat = false;
                 break;
@@ -524,27 +544,29 @@ and isolation during night periods. */
 <li> Just allocate the loads and charger to it. */
         if (numBats == 1)
         {
+            uint8_t i;
+            uint8_t index = batteryFillStateSort[0];
             decisionStatus |= 0x1000;
-            batteryUnderCharge = 1;
-            batteryUnderLoad = 1;
+            batteryUnderCharge = index+1;
+            batteryUnderLoad = index+1;
 /**
 <li> If the battery is in float and SoC is higher than 95%, stop charging. */
-            bool floatPhase = ((getBatteryChargingPhase(0) == floatC)
-                     && (battery[0].SoC > configData.config.floatBulkSoC));
+            bool floatPhase = ((getBatteryChargingPhase(index) == floatC)
+                     && (battery[index].SoC > configData.config.floatBulkSoC));
             if (floatPhase || chargerOff)
             {
                 decisionStatus |= 0x02;
-                batteryUnderCharge = 0;
+                batteryUnderCharge = index;
             }
-        }
 /**
 <li> If the loaded battery is weak, then deallocate the loads to the battery.
 </ul> */
-            if (battery[0].healthState == weakH)
+            if (battery[index].healthState == weakH)
             {
                 decisionStatus |= 0x40;
-                batteryUnderLoad = 0;
+                batteryUnderLoad = index;
             }
+        }
 
 /*------ MULTIPLE BATTERIES ---------*/
 /**
@@ -1014,6 +1036,18 @@ int16_t getLoadCurrentOffset(int load)
 int16_t getPanelCurrentOffset(int panel)
 {
     return currentOffsets.dataArray.panel[panel];
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Access the Battery Health State
+
+@param[in] battery: int 0..NUM_BATS-1
+@return int16_t battery Health State.
+*/
+
+battery_Hl_States getBatteryHealthState(int i)
+{
+    return battery[i].healthState;
 }
 
 /*--------------------------------------------------------------------------*/

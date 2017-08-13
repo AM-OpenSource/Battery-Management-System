@@ -308,8 +308,7 @@ void overCurrentRelease(uint32_t interface)
 /*--------------------------------------------------------------------------*/
 /** @brief Restore Saved Switch Settings
 
-Each two-bit field represents load1 bits 0-1, load2 bits 2-3 panel bits 4-5,
-and the setting is the battery (1-3) to be connected. Battery 0 = none connected.
+Each two-bit field represents load1 bits 0-1, load2 bits 2-3 panel bits 4-5.
 
 This can be used as a raw switch setting call but is not recommended for normal
 use.

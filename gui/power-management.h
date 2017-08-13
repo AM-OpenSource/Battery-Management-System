@@ -31,9 +31,6 @@
 // Use the serial interface rather than TCP/IP
 #define SERIAL
 
-// Need to tell qextserialport we are in POSIX
-#define _TTY_POSIX_
-
 // Particular serial port to use
 #define SERIAL_PORT "/dev/ttyUSB0"
 

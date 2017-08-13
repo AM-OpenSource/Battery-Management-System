@@ -1856,7 +1856,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>530</y>
+     <y>568</y>
      <width>511</width>
      <height>20</height>
     </rect>
@@ -1878,22 +1878,6 @@
     <string>Close</string>
    </property>
   </widget>
-  <zorder>title</zorder>
-  <zorder>tabWidget</zorder>
-  <zorder>errorLabel</zorder>
-  <zorder>closeButton</zorder>
-  <zorder>fcDescrLabel</zorder>
-  <zorder>fcBatt2Label</zorder>
-  <zorder>calibrateProgressBar</zorder>
-  <zorder>forceZeroCurrent3</zorder>
-  <zorder>qcLabel</zorder>
-  <zorder>fcLabel</zorder>
-  <zorder>fcBatt1Label</zorder>
-  <zorder>forceZeroCurrent1</zorder>
-  <zorder>forceZeroCurrent2</zorder>
-  <zorder>calibrateButton</zorder>
-  <zorder>quiescentCurrent</zorder>
-  <zorder>fcBatt3Label</zorder>
  </widget>
  <resources/>
  <connections/>
