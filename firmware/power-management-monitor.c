@@ -394,7 +394,8 @@ avoid thrashing when a battery is ailing. */
         }
 /**
 <li> Rank the batteries by charge state. Bubble sort to have the highest SoC set
-to the start of the list and the lowest at the end. */
+to the start of the list and the lowest at the end.
+batteryFillStateSort has the values 1 ... NUM_BATS. */
         uint8_t k;
         uint16_t temp;
         uint8_t batteryFillStateSort[NUM_BATS];        
@@ -523,7 +524,7 @@ and isolation during night periods. */
         for (i=0; i<numBats; i++)
         {
             uint8_t index = batteryFillStateSort[i];
-            if ((battery[i].healthState != missingH) &&
+            if ((battery[index].healthState != missingH) &&
                 (getBatteryChargingPhase(index) != floatC))
             {
                 allInFloat = false;
@@ -547,24 +548,15 @@ and isolation during night periods. */
             uint8_t i;
             uint8_t index = batteryFillStateSort[0];
             decisionStatus |= 0x1000;
-            batteryUnderCharge = index+1;
-            batteryUnderLoad = index+1;
-/**
-<li> If the battery is in float and SoC is higher than 95%, stop charging. */
-            bool floatPhase = ((getBatteryChargingPhase(index) == floatC)
-                     && (battery[index].SoC > configData.config.floatBulkSoC));
-            if (floatPhase || chargerOff)
-            {
-                decisionStatus |= 0x02;
-                batteryUnderCharge = index;
-            }
+            batteryUnderCharge = index;
+            batteryUnderLoad = index;
 /**
 <li> If the loaded battery is weak, then deallocate the loads to the battery.
 </ul> */
             if (battery[index].healthState == weakH)
             {
                 decisionStatus |= 0x40;
-                batteryUnderLoad = index;
+                batteryUnderLoad = 0;
             }
         }
 
