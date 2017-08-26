@@ -478,10 +478,12 @@ below a charging restart threshold (default 95%). */
         for (i=0; i<numBats; i++)
         {
             uint8_t index = batteryFillStateSort[i];
-            if ((battery[index].healthState != missingH) &&
-                (getBatteryChargingPhase(index) == floatC) &&
-                (getBatterySoC(index) < configData.config.floatBulkSoC))
-                setBatteryChargingPhase(index,bulkC);
+            if ((battery[index-1].healthState != missingH) &&
+                (getBatteryChargingPhase(index-1) == floatC) &&
+                (getBatterySoC(index-1) < configData.config.floatBulkSoC))
+            {
+                setBatteryChargingPhase(index-1,bulkC);
+            }
         }
 
 /**
@@ -507,8 +509,8 @@ and isolation during night periods. */
         for (i=0; i<numBats; i++)
         {
             uint8_t index = batteryFillStateSort[i];
-            if ((battery[index].healthState != missingH) &&
-                (getBatteryVoltage(index) < (getPanelVoltage(0)+128)))
+            if ((battery[index-1].healthState != missingH) &&
+                (getBatteryVoltage(index-1) < (getPanelVoltage(0)+128)))
             {
                 decisionStatus |= 0x100;
                 chargerOff = false;
@@ -524,8 +526,8 @@ and isolation during night periods. */
         for (i=0; i<numBats; i++)
         {
             uint8_t index = batteryFillStateSort[i];
-            if ((battery[index].healthState != missingH) &&
-                (getBatteryChargingPhase(index) != floatC))
+            if ((battery[index-1].healthState != missingH) &&
+                (getBatteryChargingPhase(index-1) != floatC))
             {
                 allInFloat = false;
                 break;
@@ -553,7 +555,7 @@ and isolation during night periods. */
 /**
 <li> If the loaded battery is weak, then deallocate the loads to the battery.
 </ul> */
-            if (battery[index].healthState == weakH)
+            if (battery[index-1].healthState == weakH)
             {
                 decisionStatus |= 0x40;
                 batteryUnderLoad = 0;

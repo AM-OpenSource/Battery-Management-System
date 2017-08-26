@@ -290,7 +290,7 @@ void PowerManagementGui::processResponse(const QString response)
     QString current, voltage;
     if (! saveFile.isEmpty()) saveLine(response);
 /* When the time field is received, send back a short message to keep comms
-alive. Also check for calibration as time emssages stop during this process. */
+alive. Also check for calibration as time messages stop during this process. */
     if ((size > 0) && ((firstField == "pH") || (firstField == "pQ")))
     {
         socket->write("pc+\n\r");

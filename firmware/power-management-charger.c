@@ -266,6 +266,7 @@ exceeded. */
                             setBatteryChargingPhase(index,floatC);
                             absorptionPhaseTime[index] = 0;
                             absorptionPhaseCurrent[index] = 0;
+                            resetBatterySoC(index);
                         }
                     }
 /**
@@ -291,7 +292,7 @@ by the resetBattery function. */
                             setBatteryChargingPhase(index,floatC);
                             absorptionPhaseTime[index] = 0;
                             floatDelayCount[index] = 0;
-                            resetBatterySoC(battery-1);
+                            resetBatterySoC(index);
                         }
                     }
                     else floatDelayCount[index] = 0;
