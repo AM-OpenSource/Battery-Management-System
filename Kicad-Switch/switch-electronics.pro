@@ -1,5 +1,5 @@
-update=Tue 10 Dec 2013 09:49:11 CST
-last_client=eeschema
+update=Sun 07 Jan 2018 17:32:17 ACDT
+last_client=kicad
 [cvpcb]
 version=1
 NetIExt=net
@@ -40,15 +40,7 @@ LibName13=Power-Terminal
 LibName14=lqfp
 [eeschema]
 version=1
-PageLayoutDescrFile=
-SubpartIdSeparator=0
-SubpartFirstId=65
-LibDir=../NonProject/Kicad/sym
-NetFmtName=
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
+LibDir=symbols
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -80,3 +72,6 @@ LibName27=opto
 LibName28=atmel
 LibName29=contrib
 LibName30=valves
+LibName31=symbols/MIC4127
+LibName32=symbols/sud50p04-08-ge3
+LibName33=symbols/sqd45p03-12

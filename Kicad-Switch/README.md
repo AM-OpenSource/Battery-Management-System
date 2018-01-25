@@ -1,28 +1,24 @@
 Battery Management System Switch
 --------------------------------
 
-PCB for the MOSFET switch matrix.
+Version 2 of the PCB for the MOSFET switch matrix using SMD components.
 
 Digital circuitry ensures that no two batteries are connected together, which
-could cause damage if the state of charge differs significantly.
+could cause damage if the state of charge between the batteries differs
+significantly.
 
 A diode matrix is used to provide power for the electronics. It ensures that
 power is taken from the loads, or from the batteries if the loads are not
 connected. This enables the firmware to keep track of the current drawn by
 the local electronics.
 
-The MOSFETs are driven by simple BJT-resistor drivers. This results in quite
-slow switching speeds. There may be a need for faster switching e.g. high speed
-PWM to reduce EMI. In this case the circuit needs to be modified to use better
-drivers.
+The MOSFETs are driven by BJT PNP-NPN totem pole drivers. Three [Ideal Diodes](http://www.jiggerjuice.info/electronics/projects/power/ideal-diode.html) 
+are also provided in the load circuits to prevent current flowing back to a
+battery when a stronger battery is connected to a load. These circuits ensure
+that additional voltage drops are kept small. The panel circuit will also
+experience such a flow-back in circumstances when the panel voltage is
+low. However prevention of this can be done in firmware as there is no value
+connecting the panel to a battery if the panel voltage is low.
 
-There were several errors in the circuit, which have been corrected but not
-tested. The board is to be replaced with the gEDA version.
-
-In the board, load 1 is the central row of switches and the upper power
-connector. Load 2 is the lower row of switches and the lower power connector.
-This is the reverse of that used in the interconnect board and has been changed
-in the gEDA board.
-
-(c) K. Sarkies 26/04/2014
+(c) K. Sarkies 19/01/2018
 
