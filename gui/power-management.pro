@@ -9,6 +9,7 @@ QWT_ROOT        = /usr/local/qwt-6.1.3
 include( $${QWT_ROOT}/features/qwt.prf )
 
 QMAKE_RPATHDIR  *= $${QWT_ROOT}/lib
+QMAKE_LFLAGS += -no-pie
 
 OBJECTS_DIR     = obj
 MOC_DIR         = moc
