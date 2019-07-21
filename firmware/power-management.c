@@ -86,7 +86,7 @@ FreeRTOS 9 August 2013
 /*--------------------------------------------------------------------------*/
 /* @brief Main Program
 
-The hardware and communications are ihitialised then all tasks are launched. */
+The hardware and communications are initialised then all tasks are launched. */
 
 int main(void)
 {
@@ -95,28 +95,22 @@ int main(void)
     initComms();                /* From comms */
 
 /* Start the watchdog task. */
-    xTaskCreate(prvWatchdogTask, (portCHAR * ) "Watchdog", \
-                configMINIMAL_STACK_SIZE, NULL, WATCHDOG_TASK_PRIORITY, NULL);
+    startWatchdogTask();
 
 /* Start the communications task. */
-    xTaskCreate(prvCommsTask, (portCHAR * ) "Communications", \
-                configMINIMAL_STACK_SIZE, NULL, COMMS_TASK_PRIORITY, NULL);
+    startCommunicationsTask();
 
 /* Start the file management task. */
-    xTaskCreate(prvFileTask, (portCHAR * ) "File", \
-                configMINIMAL_STACK_SIZE, NULL, FILE_TASK_PRIORITY, NULL);
+    startFileTask();
 
 /* Start the measurement task. */
-    xTaskCreate(prvMeasurementTask, (portCHAR * ) "Measurement", \
-                configMINIMAL_STACK_SIZE, NULL, MEASUREMENT_TASK_PRIORITY, NULL);
+    startMeasurementTask();
 
 /* Start the monitor task. */
-    xTaskCreate(prvMonitorTask, (portCHAR * ) "Monitor", \
-                configMINIMAL_STACK_SIZE, NULL, MONITOR_TASK_PRIORITY, NULL);
+    startMonitorTask();
 
 /* Start the charger task. */
-    xTaskCreate(prvChargerTask, (portCHAR * ) "Charger", \
-                configMINIMAL_STACK_SIZE, NULL, CHARGER_TASK_PRIORITY, NULL);
+    startChargerTask();
 
 /* Start the scheduler. */
     vTaskStartScheduler();

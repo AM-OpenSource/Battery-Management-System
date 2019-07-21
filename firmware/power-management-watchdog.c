@@ -48,14 +48,17 @@ Initial 15 March 2014
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "power-management.h"
 #include "power-management-board-defs.h"
-#include "power-management-objdic.h"
-#include "power-management-hardware.h"
-#include "power-management-monitor.h"
-#include "power-management-measurement.h"
 #include "power-management-charger.h"
-#include "power-management-file.h"
 #include "power-management-comms.h"
+#include "power-management-file.h"
+#include "power-management-hardware.h"
+#include "power-management-lib.h"
+#include "power-management-measurement.h"
+#include "power-management-monitor.h"
+#include "power-management-objdic.h"
+#include "power-management-time.h"
 
 /* Local Prototypes */
 
@@ -81,6 +84,17 @@ void prvWatchdogTask(void *pvParameters)
         checkMeasurementWatchdog();
         checkMonitorWatchdog();
     }
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the Watchdog task
+
+*/
+
+void startWatchdogTask(void)
+{
+    xTaskCreate(prvWatchdogTask, (portCHAR * ) "Watchdog", \
+                configMINIMAL_STACK_SIZE, NULL, WATCHDOG_TASK_PRIORITY, NULL);
 }
 
 /**@}*/

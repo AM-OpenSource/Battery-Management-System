@@ -34,11 +34,11 @@ Initial 25 November 2013
 #include <stdbool.h>
 #include <time.h>
 
-#include "power-management-objdic.h"
+#include "power-management-comms.h"
 #include "power-management-hardware.h"
 #include "power-management-lib.h"
+#include "power-management-objdic.h"
 #include "power-management-time.h"
-#include "power-management-comms.h"
 
 /*--------------------------------------------------------------------------*/
 /** @brief Return a string containing the time and date

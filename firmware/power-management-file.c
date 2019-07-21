@@ -57,6 +57,7 @@ Initial 1 October 2013
 #include "ff.h"
 
 /* Project Includes */
+#include "power-management.h"
 #include "power-management-board-defs.h"
 #include "power-management-hardware.h"
 #include "power-management-objdic.h"
@@ -653,6 +654,17 @@ bool sendFileCommand(char command, uint8_t length, uint8_t *parameters)
                 return false;
     }
     return true;
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the File task
+
+*/
+
+void startFileTask(void)
+{
+    xTaskCreate(prvFileTask, (portCHAR * ) "File", \
+                configMINIMAL_STACK_SIZE, NULL, FILE_TASK_PRIORITY, NULL);
 }
 
 /**@}*/

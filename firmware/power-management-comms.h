@@ -51,6 +51,7 @@ void sendDebugResponse(char* ident, int32_t parameter);
 void sendString(char* ident, char* string);
 void sendStringLowPriority(char* ident, char* string);
 void sendDebugString(char* ident, char* string);
+void startCommunicationsTask(void);
 
 #endif
 

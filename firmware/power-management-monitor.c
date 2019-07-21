@@ -60,17 +60,17 @@ Updated 15 November 2016
 #include "task.h"
 #include "semphr.h"
 
-#include "power-management-board-defs.h"
 #include "power-management.h"
-#include "power-management-hardware.h"
-#include "power-management-objdic.h"
-#include "power-management-lib.h"
-#include "power-management-time.h"
-#include "power-management-file.h"
-#include "power-management-comms.h"
-#include "power-management-measurement.h"
+#include "power-management-board-defs.h"
 #include "power-management-charger.h"
+#include "power-management-comms.h"
+#include "power-management-file.h"
+#include "power-management-hardware.h"
+#include "power-management-lib.h"
+#include "power-management-measurement.h"
 #include "power-management-monitor.h"
+#include "power-management-objdic.h"
+#include "power-management-time.h"
 
 /*--------------------------------------------------------------------------*/
 /* Local Prototypes */
@@ -95,6 +95,8 @@ static union InterfaceGroup voltages;
 static uint8_t batteryUnderCharge;
 static uint8_t batteryUnderLoad;
 static bool chargerOff;                 /* At night the charger is disabled */
+
+TaskHandle_t monitorTaskHandle;
 
 /*--------------------------------------------------------------------------*/
 /** @brief <b>Monitoring Task</b>
@@ -1145,12 +1147,23 @@ void checkMonitorWatchdog(void)
 {
     if (monitorWatchdogCount++ > 10*getMonitorDelay()/getWatchdogDelay())
     {
-        vTaskDelete(prvMonitorTask);
-        xTaskCreate(prvMonitorTask, (portCHAR * ) "Monitor", \
-                    configMINIMAL_STACK_SIZE, NULL, MONITOR_TASK_PRIORITY, NULL);
+        vTaskDelete(monitorTaskHandle);
+        startMonitorTask();
         sendDebugString("D","Monitor Restarted");
         recordString("D","Monitor Restarted");
     }
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the Monitor task
+
+*/
+
+void startMonitorTask(void)
+{
+    xTaskCreate(prvMonitorTask, (portCHAR * ) "Monitor", \
+                configMINIMAL_STACK_SIZE, NULL, MONITOR_TASK_PRIORITY,
+                &monitorTaskHandle);
 }
 
 /*--------------------------------------------------------------------------*/

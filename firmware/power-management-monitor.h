@@ -69,9 +69,10 @@ void setBatteryUnderLoad(int battery);
 void setBatterySoC(int battery,int16_t soc);
 void resetBatterySoC(int battery);
 void startCalibration();
-void checkMonitorWatchdog(void);
 void setBatteryMissing(int battery, bool missing);
 int16_t computeSoC(uint32_t voltage, uint32_t temperature, battery_Type type);
+void checkMonitorWatchdog(void);
+void startMonitorTask(void);
 
 #endif
 

@@ -32,6 +32,7 @@ Initial 15 March 2014
 /* Prototypes */
 /*--------------------------------------------------------------------------*/
 void prvWatchdogTask(void *pvParameters);
+void startWatchdogTask(void);
 
 #endif
 

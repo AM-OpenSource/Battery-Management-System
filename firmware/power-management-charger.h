@@ -32,16 +32,19 @@ Initial 18 October 2013
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "power-management-objdic.h"
+
 /*--------------------------------------------------------------------------*/
 /* Prototypes */
 /*--------------------------------------------------------------------------*/
 void prvChargerTask(void *pvParameters);
-void checkChargerWatchdog(void);
 int16_t getVoltageAv(int index);
 int16_t getCurrentAv(int index);
 battery_Ch_States getBatteryChargingPhase(int index);
 void resetChargeAlgorithm();
 void setBatteryChargingPhase(int index, battery_Ch_States chargePhase);
+void checkChargerWatchdog(void);
+void startChargerTask(void);
 
 #endif
 

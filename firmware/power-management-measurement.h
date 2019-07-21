@@ -56,6 +56,7 @@ int16_t getCurrent(int intf);
 int16_t getVoltage(int intf);
 int32_t getTemperature(void);
 void checkMeasurementWatchdog(void);
+void startMeasurementTask(void);
 
 #endif
 

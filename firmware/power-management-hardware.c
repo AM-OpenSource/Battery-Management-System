@@ -15,6 +15,9 @@ their provision of 12 bit A/D.
 Flash write code adapted from code by Damian Miller.
 
 Initial 29 September 2013
+Updated 19 July 2019
+
+Replace timer_reset(TIM1) with rcc_periph_reset_pulse(RST_TIM1) according to issue #709.
 */
 
 /*
@@ -411,7 +414,7 @@ static void pwmSetup(void)
               GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO8);
 
 /* Reset TIM1 peripheral. */
-    timer_reset(TIM1);
+    rcc_periph_reset_pulse(RST_TIM1);
 
 /* Set Timer global mode:
  - No division

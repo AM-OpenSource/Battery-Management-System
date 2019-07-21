@@ -45,15 +45,16 @@ Initial 29 September 2013
 #include "semphr.h"
 #include "timers.h"
 
-#include "power-management-hardware.h"
-#include "power-management-objdic.h"
+#include "power-management.h"
+#include "power-management-charger.h"
+#include "power-management-comms.h"
 #include "power-management-file.h"
+#include "power-management-hardware.h"
+#include "power-management-lib.h"
 #include "power-management-measurement.h"
 #include "power-management-monitor.h"
-#include "power-management-charger.h"
+#include "power-management-objdic.h"
 #include "power-management-time.h"
-#include "power-management-lib.h"
-#include "power-management-comms.h"
 #include "ff.h"
 
 /*--------------------------------------------------------------------------*/
@@ -1306,6 +1307,17 @@ void lapseCommsCallback(xTimerHandle lapseCommsTimer)
 {
     lapseCommsTimer = lapseCommsTimer;
     configData.config.enableSend = false;    
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the Communications task
+
+*/
+
+void startCommunicationsTask(void)
+{
+    xTaskCreate(prvCommsTask, (portCHAR * ) "Communications", \
+                configMINIMAL_STACK_SIZE, NULL, COMMS_TASK_PRIORITY, NULL);
 }
 
 /**@}*/

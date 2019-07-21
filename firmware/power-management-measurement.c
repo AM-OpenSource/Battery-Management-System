@@ -53,14 +53,16 @@ Update 15 November 2016
 #include "task.h"
 #include "semphr.h"
 
-#include "power-management-board-defs.h"
 #include "power-management.h"
-#include "power-management-file.h"
+#include "power-management-board-defs.h"
 #include "power-management-comms.h"
+#include "power-management-file.h"
 #include "power-management-hardware.h"
-#include "power-management-objdic.h"
-#include "power-management-monitor.h"
+#include "power-management-lib.h"
 #include "power-management-measurement.h"
+#include "power-management-monitor.h"
+#include "power-management-objdic.h"
+#include "power-management-time.h"
 
 /* Local Prototypes */
 static void initGlobals(void);
@@ -78,6 +80,8 @@ static int16_t temperature;
 static uint32_t lastCycleTimeMs;
 static union InterfaceGroup currents;
 static union InterfaceGroup voltages;
+
+TaskHandle_t measurementTaskHandle;
 
 /*--------------------------------------------------------------------------*/
 /** @brief Measurement Task
@@ -386,13 +390,25 @@ void checkMeasurementWatchdog(void)
 {
     if (measurementWatchdogCount++ > 10*getMeasurementDelay()/getWatchdogDelay())
     {
-        vTaskDelete(prvMeasurementTask);
-        xTaskCreate(prvMeasurementTask, (portCHAR * ) "Measurement", \
-                configMINIMAL_STACK_SIZE, NULL, MEASUREMENT_TASK_PRIORITY, NULL);
+        vTaskDelete(measurementTaskHandle);
+        startMeasurementTask();
         sendDebugString("D","Measurement Restarted");
         recordString("D","Measurement Restarted");
     }
 }
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the Measurement task
+
+*/
+
+void startMeasurementTask(void)
+{
+    xTaskCreate(prvMeasurementTask, (portCHAR * ) "Measurement", \
+                configMINIMAL_STACK_SIZE, NULL, MEASUREMENT_TASK_PRIORITY,
+                &measurementTaskHandle);
+}
+
 
 /**@}*/
 

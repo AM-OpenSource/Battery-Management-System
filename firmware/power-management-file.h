@@ -41,6 +41,7 @@ uint8_t recordString(char* ident, char* string);
 uint8_t recordDual(char* ident, int32_t param1, int32_t param2);
 uint8_t recordSingle(char* ident, int32_t param1);
 bool sendFileCommand(char command, uint8_t length, uint8_t *parameters);
+void startFileTask(void);
 
 #endif
 

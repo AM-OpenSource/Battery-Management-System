@@ -65,12 +65,13 @@ Updated 15 November 2016
 #include "semphr.h"
 
 #include "power-management.h"
+#include "power-management-charger.h"
 #include "power-management-comms.h"
 #include "power-management-file.h"
 #include "power-management-hardware.h"
 #include "power-management-measurement.h"
 #include "power-management-monitor.h"
-#include "power-management-charger.h"
+#include "power-management-objdic.h"
 
 /*--------------------------------------------------------------------------*/
 /* Local Prototypes */
@@ -100,6 +101,8 @@ static uint16_t dutyCycleMax;
 static uint32_t absorptionPhaseTime[NUM_BATS];   /* time in absorption */
 static int16_t absorptionPhaseCurrent[NUM_BATS];
 static uint8_t floatDelayCount[NUM_BATS];   /* Below float limit persistence */
+
+TaskHandle_t chargerTaskHandle;
 
 /*--------------------------------------------------------------------------*/
 /** @brief Charging Task
@@ -452,24 +455,6 @@ void setBatteryChargingPhase(int index, battery_Ch_States chargePhase)
 }
 
 /*--------------------------------------------------------------------------*/
-/** @brief Check the watchdog state
-
-The watchdog counter is decremented. If it reaches zero then the task is reset.
-*/
-
-void checkChargerWatchdog(void)
-{
-    if (chargerWatchdogCount++ > 10*getChargerDelay()/getWatchdogDelay())
-    {
-        vTaskDelete(prvChargerTask);
-        xTaskCreate(prvChargerTask, (portCHAR * ) "Charger", \
-                    configMINIMAL_STACK_SIZE, NULL, CHARGER_TASK_PRIORITY, NULL);
-        sendDebugString("D","Charger Restarted");
-        recordString("D","Charger Restarted");
-    }
-}
-
-/*--------------------------------------------------------------------------*/
 /** @brief Correct the Voltage Limit for Temperature
 
 Based on an heuristic measure from battery data, which is about 5mV per cell
@@ -544,6 +529,35 @@ void calculateAverageMeasures(uint8_t i)
                 ((getAlphaV()*(voltage - voltageAv[i]))>>8);
     currentAv[i] = currentAv[i] +
                 ((getAlphaC()*(current - currentAv[i]))>>8);
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Check the watchdog state
+
+The watchdog counter is decremented. If it reaches zero then the task is reset.
+*/
+
+void checkChargerWatchdog(void)
+{
+    if (chargerWatchdogCount++ > 10*getChargerDelay()/getWatchdogDelay())
+    {
+        vTaskDelete(chargerTaskHandle);
+        startChargerTask();
+        sendDebugString("D","Charger Restarted");
+        recordString("D","Charger Restarted");
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+/** @brief Start the Charger task
+
+*/
+
+void startChargerTask(void)
+{
+    xTaskCreate(prvChargerTask, (portCHAR * ) "Charger", \
+                configMINIMAL_STACK_SIZE, NULL, CHARGER_TASK_PRIORITY,
+                &chargerTaskHandle);
 }
 
 /*--------------------------------------------------------------------------*/
