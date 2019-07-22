@@ -17,6 +17,7 @@ way.
 The watchdog task activates a hardware IWDG watchdog timer to protect itself.
 
 Initial 15 March 2014
+21 July 2019 Added task starter function
 */
 
 /*

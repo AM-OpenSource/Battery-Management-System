@@ -4,7 +4,7 @@ This header file contains defines and prototypes specific to the charging
 task.
 
 Initial 18 October 2013
-
+21 July 2019 Added task starter function
 */
 
 /*

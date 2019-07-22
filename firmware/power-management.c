@@ -36,12 +36,10 @@ use.
 Initial 13 July 2013
 
 FreeRTOS 9 August 2013
-
 10/11/2016: FreeRTOS v 9.0.0
-
 10/11/2016: libopencm3 commit 011b5c615ad398bd14bbc58e43d9b3335cfaa1b8
-
 10/11/2016: ChaN FatFS R0.12b
+21 July 2019 Added task starter function calls
 */
 
 /*

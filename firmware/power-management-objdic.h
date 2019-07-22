@@ -3,6 +3,8 @@
 This file defines the CANopen object dictionary variables made available to an
 external PC and to other processing modules which may be CANopen devices or
 tasks running on the same microcontroller.
+
+22 July 2019 Send additional information regarding library support versions
 */
 
 /*
@@ -29,7 +31,9 @@ tasks running on the same microcontroller.
 #ifndef POWER_MANAGEMENT_OBJDIC_H_
 #define POWER_MANAGEMENT_OBJDIC_H_
 
-#define FIRMWARE_VERSION    "1.07b"
+/* The version number consists of the firmware version, FreeRTOS version,
+ChanFAT version and the ibopencm3 date of the commit */
+#define FIRMWARE_VERSION    "1.07b - 10.2.1 - 0.13c - 2019-07-07"
 
 #define NUM_BATS    3
 #define NUM_LOADS   2

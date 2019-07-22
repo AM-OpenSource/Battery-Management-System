@@ -12,6 +12,8 @@ The communication medium is non-specific, referring on to the hardware module.
 This task is the only one having write access to the object dictionary items.
 
 Initial 29 September 2013
+21 July 2019 Added task starter function
+22 July 2019 Send additional information regarding library support versions
 */
 
 /*
@@ -227,7 +229,7 @@ released. The command is followed by an interface number n=0-5 being batteries
 <li> <b>E</b> Send an ident response */
         case 'E':
             {
-                char ident[35] = "Battery Management System,";
+                char ident[60] = "Battery Management System,";
                 stringAppend(ident,FIRMWARE_VERSION);
                 stringAppend(ident,",");
                 char version[3];

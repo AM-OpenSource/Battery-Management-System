@@ -19,6 +19,9 @@ This calls on underlying driver code that is compiled in.
 This code allows only one read and one write file to be opened at a time.
 
 Initial 1 October 2013
+22 July 2019 Changes to allow for ChanFAT 0.13c. Remove integer.h and change
+_VOLUMES to FF_VOLUMES
+
 */
 
 /*
@@ -52,9 +55,8 @@ Initial 1 October 2013
 #include "semphr.h"
 
 /* ChaN FAT includes */
-#include "integer.h"
-#include "diskio.h"
 #include "ff.h"
+#include "diskio.h"
 
 /* Project Includes */
 #include "power-management.h"
@@ -79,7 +81,7 @@ xSemaphoreHandle fileSendSemaphore;
 
 /* Local Variables */
 /* ChaN FAT */
-static FATFS Fatfs[_VOLUMES];
+static FATFS Fatfs[FF_VOLUMES];
 static FATFS *fs;		            /* File system object for logical drive 0 */
 static FIL file[MAX_OPEN_FILES];    /* file descriptions, 2 files maximum. */
 static FILINFO fileInfo[MAX_OPEN_FILES];

@@ -18,6 +18,7 @@ Each interface has a data structure holding the currents and voltages.
 Initial 29 September 2013
 Refactor 4 January 2014
 Update 15 November 2016
+21 July 2019 Added task starter function
 */
 
 /*

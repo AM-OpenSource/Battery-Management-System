@@ -16,7 +16,6 @@ Flash write code adapted from code by Damian Miller.
 
 Initial 29 September 2013
 Updated 19 July 2019
-
 Replace timer_reset(TIM1) with rcc_periph_reset_pulse(RST_TIM1) according to issue #709.
 */
 

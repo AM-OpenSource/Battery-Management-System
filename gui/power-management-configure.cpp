@@ -2,6 +2,8 @@
 
 All configuration items are dealt with here under a set of tabs that handle
 algorithmic configurations, calibration and general operational configuration.
+
+22 July 2019 Change version information display to show additional data.
 */
 /****************************************************************************
  *   Copyright (C) 2013 by Ken Sarkies                                      *
@@ -720,7 +722,7 @@ void PowerManagementConfigGui::onMessageReceived(const QString &response)
     if (command == 'E')
     {
         if (size != 4) return;
-        PowerManagementConfigUi.firmwareVersion->setText("Firmware version : " + breakdown[2]);
+        PowerManagementConfigUi.firmwareVersion->setText(breakdown[2]);
         PowerManagementConfigUi.boardVersion->setText("Interface Board Version: " + breakdown[3]);
         return;
     }

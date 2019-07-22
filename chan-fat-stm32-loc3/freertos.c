@@ -1,9 +1,10 @@
 /*  FreeRTOS semaphore locking for Chan FAT
 
 Copyright K Sarkies 30 September 2013
+
+22 July 2019 Changes to allow for ChanFAT 0.13c. Remove integer.h
 */
 
-#include "integer.h"
 #include "ffconf.h"
 
 #if _FS_REENTRANT

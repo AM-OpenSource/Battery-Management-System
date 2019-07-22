@@ -4,6 +4,7 @@ This header file contains defines and prototypes specific to the
 measurement task.
 
 Initial 29 September 2013
+21 July 2019 Added task starter function
 */
 
 /*

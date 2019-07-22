@@ -127,7 +127,7 @@ void DataProcessingGui::on_openReadFileButton_clicked()
     QString errorMessage;
     QFileInfo fileInfo;
     QString filename = QFileDialog::getOpenFileName(this,
-                                "Data File","./","Text Files (*.txt)");
+                                "Data File","./","Text Files (*.txt *.TXT)");
     if (filename.isEmpty())
     {
         displayErrorMessage("No filename specified");

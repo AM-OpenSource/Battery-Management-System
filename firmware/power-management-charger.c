@@ -32,6 +32,7 @@ One strategy control is provided to suppress the absorption phase to reduce EMI.
 
 Initial 2 October 2014
 Updated 15 November 2016
+21 July 2019 Added task starter function
 */
 
 /*
